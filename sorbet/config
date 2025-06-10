@@ -1,0 +1,7 @@
+--dir
+.
+--ignore=/tmp/
+--ignore=/vendor/bundle
+--ignore=/examples
+--ignore=/spec
+--ignore=/lib/generators

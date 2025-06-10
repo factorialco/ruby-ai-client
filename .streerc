@@ -1,0 +1,4 @@
+--print-width=100
+--plugins=plugin/single_quotes
+--ignore-files='sorbet/**/*.*'
+--ignore-files='lib/ai/templates/*.*'
