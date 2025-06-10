@@ -1,0 +1,73 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'bundler/setup'
+require 'ai'
+
+# You can add fixtures and/or initialization code here to make experimenting
+# with your gem easier. You can also use a different console, if you like.
+
+require 'irb'
+Ai.config.endpoint = ENV.fetch('MASTRA_LOCATION', nil)
+
+class MyAiMagicProcess
+  extend T::Sig
+
+  class MyAgent
+    extend T::Sig
+
+    sig { returns(String) }
+    def self.agent_name
+      'marvin'
+    end
+
+    sig do
+      type_parameters(:O)
+        .params(output_class: T.all(T::Class[T.type_parameter(:O)], T::Class[T::Struct]))
+        .returns(Ai::Agent::Instance[T.all(T.type_parameter(:O), T::Struct)])
+    end
+    def self.[](output_class)
+      Ai::Agent[agent_name, output_class]
+    end
+
+    sig do
+      params(
+        message: Ai::Message,
+        runtime_context: T::Hash[String, T.anything],
+        max_retries: Integer,
+        max_steps: Integer
+      ).returns(Ai::GenerateTextResult)
+    end
+    def self.generate_text(message:, runtime_context: {}, max_retries: 2, max_steps: 5)
+      Ai::Agent.generate_text(
+        agent_name,
+        message: message,
+        runtime_context: runtime_context,
+        max_retries: max_retries,
+        max_steps: max_steps
+      )
+    end
+  end
+
+  class Output < T::Struct
+    const :response, String
+  end
+
+  sig { returns(String) }
+  def call
+    message = Ai.user_message('hello')
+
+    response = MyAgent[Output].generate_object(message: message, runtime_context: {})
+    response.object.response
+
+    other_response = MyAgent.generate_text(message: message, runtime_context: {})
+    other_response.text
+  end
+end
+
+Ai.config.endpoint = ENV.fetch('MASTRA_LOCATION', nil)
+
+IRB.start(__FILE__)
+process = MyAiMagicProcess.new
+result = process.call
+puts result
