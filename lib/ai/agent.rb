@@ -41,14 +41,13 @@ module Ai
         ).returns(Ai::GenerateTextResult)
       end
       def generate_text(messages:, runtime_context: {}, max_retries: 2, max_steps: 5)
-        data =
-          client.generate_agent_text(
-            agent_name,
-            messages: messages,
-            runtime_context: runtime_context,
-            max_retries: max_retries,
-            max_steps: max_steps
-          )
+        options = {
+          runtime_context: runtime_context,
+          max_retries: max_retries,
+          max_steps: max_steps
+        }
+
+        data = client.generate(agent_name, messages: messages, options: options)
         TypeCoerce[Ai::GenerateTextResult].new.from(data, raise_coercion_error: false)
       end
 
@@ -67,15 +66,14 @@ module Ai
 
         output = Ai::StructToJsonSchema.convert(T.cast(output_class, T.class_of(T::Struct)))
 
-        data =
-          client.generate_agent_object(
-            agent_name,
-            messages: messages,
-            runtime_context: runtime_context,
-            max_retries: max_retries,
-            max_steps: max_steps,
-            output: output
-          )
+        options = {
+          runtime_context: runtime_context,
+          max_retries: max_retries,
+          max_steps: max_steps,
+          output: output
+        }
+
+        data = client.generate(agent_name, messages: messages, options: options)
 
         object = TypeCoerce[output_class].from(data['object'])
         TypeCoerce[GenerateObjectResult[Output]]

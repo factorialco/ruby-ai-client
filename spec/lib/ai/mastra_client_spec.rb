@@ -5,19 +5,7 @@ RSpec.describe Ai::Clients::Mastra do
   let(:endpoint) { 'https://mastra.local.factorial.dev' }
   let(:client) { described_class.new(endpoint) }
 
-  describe '#generate_agent_text', :vcr do
-    it 'generates text using the Mastra API' do
-      VCR.use_cassette('mastra_generate_agent_text') do
-        result = client.generate_agent_text('marvin', messages: [Ai.user_message('Hello!')])
-
-        expect(result).to be_a(Hash)
-        expect(result).to have_key('text')
-        expect(result['text']).to eq('Hello! What data or report can I help you retrieve today?')
-      end
-    end
-  end
-
-  describe '#generate_agent_object', :vcr do
+  describe '#generate', :vcr do
     let(:output_schema) do
       {
         'type' => 'object',
@@ -34,13 +22,25 @@ RSpec.describe Ai::Clients::Mastra do
       }
     end
 
+    it 'generates text using the Mastra API' do
+      VCR.use_cassette('mastra_generate_agent_text') do
+        result = client.generate('marvin', messages: [Ai.user_message('Hello!')])
+
+        expect(result).to be_a(Hash)
+        expect(result).to have_key('text')
+        expect(result['text']).to eq('Hello! What data or report can I help you retrieve today?')
+      end
+    end
+
     it 'generates structured object using the Mastra API' do
       VCR.use_cassette('mastra_generate_agent_object') do
         result =
-          client.generate_agent_object(
+          client.generate(
             'marvin',
             messages: [Ai.user_message('Hello!')],
-            output: output_schema
+            options: {
+              output: output_schema
+            }
           )
 
         expect(result).to be_a(Hash)

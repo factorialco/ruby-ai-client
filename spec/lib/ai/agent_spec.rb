@@ -18,12 +18,14 @@ RSpec.describe Ai::Agent do
     it 'passes runtime_context to the client' do
       runtime_context = { 'user_id' => '123', 'session_id' => 'abc' }
 
-      expect(client).to receive(:generate_agent_text).with(
+      expect(client).to receive(:generate).with(
         'test',
         messages: anything,
-        runtime_context: runtime_context,
-        max_retries: 2,
-        max_steps: 5
+        options: {
+          runtime_context: runtime_context,
+          max_retries: 2,
+          max_steps: 5
+        }
       ).and_call_original
 
       Ai::Agent.generate_text(
@@ -34,13 +36,15 @@ RSpec.describe Ai::Agent do
     end
 
     it 'passes custom max_retries and max_steps to client' do
-      expect(client).to receive(:generate_agent_text).with(
+      expect(client).to receive(:generate).with(
         'test',
         messages: anything,
-        runtime_context: {
-        },
-        max_retries: 5,
-        max_steps: 10
+        options: {
+          runtime_context: {
+          },
+          max_retries: 5,
+          max_steps: 10
+        }
       ).and_call_original
 
       Ai::Agent.generate_text(
@@ -92,7 +96,7 @@ RSpec.describe Ai::Agent do
     it 'instantiates response as output struct' do
       agent = Ai::Agent['test_agent', Output]
 
-      allow(client).to receive(:generate_agent_object).and_return(
+      allow(client).to receive(:generate).and_return(
         mock_object_response({ 'name' => 'John', 'age' => 30 })
       )
 
@@ -115,7 +119,7 @@ RSpec.describe Ai::Agent do
   describe 'mocked responses' do
     context 'when client returns different text' do
       before do
-        allow(client).to receive(:generate_agent_text).and_return(
+        allow(client).to receive(:generate).and_return(
           mock_text_response(
             'Mocked response',
             files: [
@@ -177,7 +181,7 @@ RSpec.describe Ai::Agent do
 
     context 'when client simulates an error scenario' do
       before do
-        allow(client).to receive(:generate_agent_text).and_return(
+        allow(client).to receive(:generate).and_return(
           mock_text_response(
             'Error occurred',
             finish_reason: :error,
@@ -204,7 +208,7 @@ RSpec.describe Ai::Agent do
   def mock_object_response(object_data, options = {})
     {
       'object' => object_data,
-      'finish_reason' => options[:finish_reason] || :stop,
+      'finish_reason' => options[:finish_reason] || 'stop',
       'usage' => options[:usage] || mock_usage,
       'warnings' => options[:warnings],
       'request' => options[:request] || mock_request,
@@ -234,50 +238,50 @@ RSpec.describe Ai::Agent do
 
   def mock_text_response(text, options = {})
     {
-      text: text,
-      files: options[:files] || [],
-      reasoning: options[:reasoning],
-      reasoning_details: options[:reasoning_details] || [],
-      sources: options[:sources] || [],
-      experimental_output: options[:experimental_output],
-      tool_calls: options[:tool_calls] || [],
-      tool_results: options[:tool_results] || [],
-      finish_reason: options[:finish_reason] || :stop,
-      usage: options[:usage] || mock_usage,
-      warnings: options[:warnings],
-      steps: options[:steps] || [],
-      request: options[:request] || mock_request,
-      response: options[:response] || mock_response_metadata,
-      logprobs: options[:logprobs],
-      provider_metadata: options[:provider_metadata],
-      experimental_provider_metadata: options[:experimental_provider_metadata]
+      'text' => text,
+      'files' => options[:files] || [],
+      'reasoning' => options[:reasoning],
+      'reasoning_details' => options[:reasoning_details] || [],
+      'sources' => options[:sources] || [],
+      'experimental_output' => options[:experimental_output],
+      'tool_calls' => options[:tool_calls] || [],
+      'tool_results' => options[:tool_results] || [],
+      'finish_reason' => options[:finish_reason] || 'stop',
+      'usage' => options[:usage] || mock_usage,
+      'warnings' => options[:warnings],
+      'steps' => options[:steps] || [],
+      'request' => options[:request] || mock_request,
+      'response' => options[:response] || mock_response_metadata,
+      'logprobs' => options[:logprobs],
+      'provider_metadata' => options[:provider_metadata],
+      'experimental_provider_metadata' => options[:experimental_provider_metadata]
     }
   end
 
   def mock_file(base64, uint8_array, mime_type = 'text/plain')
-    { base64: base64, uint8_array: uint8_array, mime_type: mime_type }
+    { 'base64' => base64, 'uint8_array' => uint8_array, 'mime_type' => mime_type }
   end
 
   def mock_step(text, options = {})
     {
-      text: text,
-      reasoning: options[:reasoning],
-      reasoning_details: options[:reasoning_details] || [],
-      files: options[:files] || [],
-      sources: options[:sources] || [],
-      tool_calls: options[:tool_calls] || [],
-      tool_results: options[:tool_results] || [],
-      finish_reason: options[:finish_reason] || :stop,
-      usage: options[:usage] || mock_usage(1, 1, 2),
-      warnings: options[:warnings],
-      logprobs: options[:logprobs],
-      request: options[:request] || mock_request,
-      response:
+      'text' => text,
+      'reasoning' => options[:reasoning],
+      'reasoning_details' => options[:reasoning_details] || [],
+      'files' => options[:files] || [],
+      'sources' => options[:sources] || [],
+      'tool_calls' => options[:tool_calls] || [],
+      'tool_results' => options[:tool_results] || [],
+      'finish_reason' => options[:finish_reason] || 'stop',
+      'usage' => options[:usage] || mock_usage(1, 1, 2),
+      'warnings' => options[:warnings],
+      'logprobs' => options[:logprobs],
+      'request' => options[:request] || mock_request,
+      'response' =>
         options[:response] || mock_response_metadata('step-123', 'test', 'step response body'),
-      provider_metadata: options[:provider_metadata],
-      experimental_provider_metadata: options[:experimental_provider_metadata],
-      step_type: options[:step_type] || 'initial',
-      is_continued: options[:is_continued] || false
+      'provider_metadata' => options[:provider_metadata],
+      'experimental_provider_metadata' => options[:experimental_provider_metadata],
+      'step_type' => options[:step_type] || 'initial',
+      'is_continued' => options[:is_continued] || false
     }
   end
 end
