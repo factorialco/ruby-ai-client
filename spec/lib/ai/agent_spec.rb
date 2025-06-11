@@ -238,50 +238,50 @@ RSpec.describe Ai::Agent do
 
   def mock_text_response(text, options = {})
     {
-      'text' => text,
-      'files' => options[:files] || [],
-      'reasoning' => options[:reasoning],
-      'reasoning_details' => options[:reasoning_details] || [],
-      'sources' => options[:sources] || [],
-      'experimental_output' => options[:experimental_output],
-      'tool_calls' => options[:tool_calls] || [],
-      'tool_results' => options[:tool_results] || [],
-      'finish_reason' => options[:finish_reason] || 'stop',
-      'usage' => options[:usage] || mock_usage,
-      'warnings' => options[:warnings],
-      'steps' => options[:steps] || [],
-      'request' => options[:request] || mock_request,
-      'response' => options[:response] || mock_response_metadata,
-      'logprobs' => options[:logprobs],
-      'provider_metadata' => options[:provider_metadata],
-      'experimental_provider_metadata' => options[:experimental_provider_metadata]
+      text: text,
+      files: options[:files] || [],
+      reasoning: options[:reasoning],
+      reasoning_details: options[:reasoning_details] || [],
+      sources: options[:sources] || [],
+      experimental_output: options[:experimental_output],
+      tool_calls: options[:tool_calls] || [],
+      tool_results: options[:tool_results] || [],
+      finish_reason: options[:finish_reason] || 'stop',
+      usage: options[:usage] || mock_usage,
+      warnings: options[:warnings],
+      steps: options[:steps] || [],
+      request: options[:request] || mock_request,
+      response: options[:response] || mock_response_metadata,
+      logprobs: options[:logprobs],
+      provider_metadata: options[:provider_metadata],
+      experimental_provider_metadata: options[:experimental_provider_metadata]
     }
   end
 
   def mock_file(base64, uint8_array, mime_type = 'text/plain')
-    { 'base64' => base64, 'uint8_array' => uint8_array, 'mime_type' => mime_type }
+    { base64: base64, uint8_array: uint8_array, mime_type: mime_type }
   end
 
   def mock_step(text, options = {})
     {
-      'text' => text,
-      'reasoning' => options[:reasoning],
-      'reasoning_details' => options[:reasoning_details] || [],
-      'files' => options[:files] || [],
-      'sources' => options[:sources] || [],
-      'tool_calls' => options[:tool_calls] || [],
-      'tool_results' => options[:tool_results] || [],
-      'finish_reason' => options[:finish_reason] || 'stop',
-      'usage' => options[:usage] || mock_usage(1, 1, 2),
-      'warnings' => options[:warnings],
-      'logprobs' => options[:logprobs],
-      'request' => options[:request] || mock_request,
-      'response' =>
+      text: text,
+      reasoning: options[:reasoning],
+      reasoning_details: options[:reasoning_details] || [],
+      files: options[:files] || [],
+      sources: options[:sources] || [],
+      tool_calls: options[:tool_calls] || [],
+      tool_results: options[:tool_results] || [],
+      finish_reason: options[:finish_reason] || 'stop',
+      usage: options[:usage] || mock_usage(1, 1, 2),
+      warnings: options[:warnings],
+      logprobs: options[:logprobs],
+      request: options[:request] || mock_request,
+      response:
         options[:response] || mock_response_metadata('step-123', 'test', 'step response body'),
-      'provider_metadata' => options[:provider_metadata],
-      'experimental_provider_metadata' => options[:experimental_provider_metadata],
-      'step_type' => options[:step_type] || 'initial',
-      'is_continued' => options[:is_continued] || false
+      provider_metadata: options[:provider_metadata],
+      experimental_provider_metadata: options[:experimental_provider_metadata],
+      step_type: options[:step_type] || 'initial',
+      is_continued: options[:is_continued] || false
     }
   end
 end
