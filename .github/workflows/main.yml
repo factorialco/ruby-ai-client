@@ -1,4 +1,4 @@
-name: Ruby
+name: Ruby AI client
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Ruby ${{ matrix.ruby }}
+    name: CI
     strategy:
       matrix:
         ruby:
