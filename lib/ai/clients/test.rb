@@ -29,10 +29,6 @@ module Ai
           .returns(T::Hash[String, T.anything])
       end
       def generate(agent_name, messages:, options: {})
-        # Extract options with defaults
-        runtime_context = options[:runtime_context] || {}
-        max_retries = options[:max_retries] || 2
-        max_steps = options[:max_steps] || 5
         output = options[:output]
 
         # Use the first message content for testing purposes
@@ -41,61 +37,61 @@ module Ai
         if output
           # Return object generation format
           {
-            'object' => {
+            object: {
             },
-            'finish_reason' => 'stop',
-            'usage' => {
-              'prompt_tokens' => 0,
-              'completion_tokens' => 0,
-              'total_tokens' => 0
+            finish_reason: 'stop',
+            usage: {
+              prompt_tokens: 0,
+              completion_tokens: 0,
+              total_tokens: 0
             },
-            'warnings' => nil,
-            'request' => {
-              'body' => nil
+            warnings: nil,
+            request: {
+              body: nil
             },
-            'response' => {
-              'id' => '123',
-              'timestamp' => Time.now,
-              'model_id' => agent_name,
-              'headers' => nil,
-              'body' => nil
+            response: {
+              id: '123',
+              timestamp: Time.now,
+              model_id: agent_name,
+              headers: nil,
+              body: nil
             },
-            'logprobs' => nil,
-            'provider_metadata' => nil,
-            'experimental_provider_metadata' => nil
+            logprobs: nil,
+            provider_metadata: nil,
+            experimental_provider_metadata: nil
           }
         else
           # Return text generation format
           {
-            'text' => message_content,
-            'files' => [],
-            'reasoning' => nil,
-            'reasoning_details' => [],
-            'sources' => [],
-            'experimental_output' => nil,
-            'tool_calls' => [],
-            'tool_results' => [],
-            'finish_reason' => 'stop',
-            'usage' => {
-              'prompt_tokens' => 0,
-              'completion_tokens' => 0,
-              'total_tokens' => 0
+            text: message_content,
+            files: [],
+            reasoning: nil,
+            reasoning_details: [],
+            sources: [],
+            experimental_output: nil,
+            tool_calls: [],
+            tool_results: [],
+            finish_reason: 'stop',
+            usage: {
+              prompt_tokens: 0,
+              completion_tokens: 0,
+              total_tokens: 0
             },
-            'warnings' => nil,
-            'steps' => [],
-            'request' => {
-              'body' => nil
+            warnings: nil,
+            steps: [],
+            request: {
+              body: nil
             },
-            'response' => {
-              'id' => '123',
-              'timestamp' => Time.now,
-              'model_id' => agent_name,
-              'headers' => nil,
-              'body' => nil
+            response: {
+              id: '123',
+              timestamp: Time.now,
+              model_id: agent_name,
+              headers: nil,
+              body: nil
             },
-            'logprobs' => nil,
-            'provider_metadata' => nil,
-            'experimental_provider_metadata' => nil
+            logprobs: nil,
+            provider_metadata: nil,
+            experimental_provider_metadata: nil
           }
         end
       end
