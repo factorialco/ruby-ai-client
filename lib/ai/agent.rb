@@ -61,17 +61,4 @@ module Ai
         .with(object: object)
     end
   end
-
-  class TestOutput < T::Struct
-    const :name, String
-    const :age, Integer
-  end
-
-  sig { void }
-  def test
-    a = Agent.new(agent_name: 'test', client: Ai::Clients::Test.new)
-    r = a.generate_object(messages: [Ai.user_message('Create a person')], output_class: TestOutput)
-
-    r.object.name.age
-  end
 end
