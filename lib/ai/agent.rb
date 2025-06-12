@@ -11,7 +11,7 @@ module Ai
     attr_reader :client
 
     sig { params(agent_name: String, client: Ai::Client).void }
-    def initialize(agent_name:, client:)
+    def initialize(agent_name:, client: Ai.client)
       @agent_name = agent_name
       @client = client
     end
