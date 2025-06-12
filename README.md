@@ -58,13 +58,19 @@ class MyAgentService
     const :metadata, T::Hash[String, T.untyped], default: {}
   end
 
-  sig { params(input: String).returns(Outcome[Output]) }
+  sig { params(input: String).returns(Output) }
   def self.call(input)
     # Your service logic here
     messages = [Ai.user_message(input)]
-    Outcome.ok(Ai::Agents::MyCustomAgent[Output].generate_object(messages))
-  rescue Ai::Error
-    Outcome.error("Didn't work")
+    
+    # Initialize the agent (this would typically be done once and reused)
+    agent = Ai::Agent.new(agent_name: 'my_custom_agent', client: Ai::Client.new)
+    
+    # Generate structured output
+    result = agent.generate_object(
+      messages: messages,
+      output_class: Output
+    )
   end
 end
 ```
@@ -84,11 +90,46 @@ messages = [
 
 ```ruby
 # Use the service in your application
-result = MyAgentService.call("What is the weather like today?").unwrap!
+result = MyAgentService.call("What is the weather like today?")
 
 puts result.result      # => Agent's response
 puts result.confidence  # => Confidence score
 puts result.metadata    # => Additional metadata
+```
+
+#### Advanced Usage
+
+The `generate_object` method supports additional options for fine-tuning:
+
+```ruby
+agent = Ai::Agent.new(agent_name: 'my_agent', client: Ai::Client.new)
+
+result = agent.generate_object(
+  messages: messages,
+  output_class: Output,
+  runtime_context: { user_id: 123, session: 'abc' },  # Optional context
+  max_retries: 3,                                     # Retry attempts (default: 2)
+  max_steps: 10                                       # Max processing steps (default: 5)
+)
+
+# Access the structured output
+output = result.object
+puts output.result
+```
+
+For simple text generation without structured output:
+
+```ruby
+agent = Ai::Agent.new(agent_name: 'my_agent', client: Ai::Client.new)
+
+result = agent.generate_text(
+  messages: messages,
+  runtime_context: {},  # Optional context
+  max_retries: 2,       # Retry attempts (default: 2)
+  max_steps: 5          # Max processing steps (default: 5)
+)
+
+puts result.text  # Generated text response
 ```
 
 ## Generating your agents
