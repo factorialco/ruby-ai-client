@@ -19,6 +19,11 @@ module Ai
       def self.instance
         new(agent_name: '<%= @agent_name %>')
       end
+
+      sig { returns(T.attached_class) }
+      def self.test_instance
+        new(agent_name: '<%= @agent_name %>', client: Ai::Clients::Test.new)
+      end
     end
   end
 end
