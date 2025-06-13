@@ -43,10 +43,7 @@ module Ai
   LogProbs = T.type_alias { T.anything }
   ProviderMetadata = T.type_alias { T.anything }
 
-  config_accessor :endpoint, :origin
-  config_accessor :client,
-                  default:
-                    Ai::Clients::Mastra.new(Ai.config.endpoint || ENV['MASTRA_LOCATION'].to_s)
+  config_accessor :origin, :client
 
   sig { params(content: String).returns(Ai::Message) }
   def self.user_message(content)
@@ -56,5 +53,20 @@ module Ai
   sig { params(content: String).returns(Ai::Message) }
   def self.system_message(content)
     Ai::Message.new(role: Ai::MessageRole::System, content: content)
+  end
+
+  sig { returns(T.nilable(Ai::Client)) }
+  def self.client
+    @client ||=
+      T.let(
+        begin
+          if ENV['MASTRA_LOCATION'].present?
+            Ai::Clients::Mastra.new(ENV.fetch('MASTRA_LOCATION'))
+          else
+            config.client
+          end
+        end,
+        T.nilable(Ai::Client)
+      )
   end
 end
