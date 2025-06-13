@@ -8,21 +8,8 @@ RSpec.describe Ai do
   describe 'configuration' do
     after do
       # Reset configuration after each test
-      Ai.config.endpoint = nil
       Ai.config.origin = nil
-      Ai.config.client = Ai::Clients::Mastra.new
-    end
-
-    describe '.endpoint' do
-      it 'can be set and retrieved' do
-        endpoint = 'https://api.example.com'
-        Ai.config.endpoint = endpoint
-        expect(Ai.config.endpoint).to eq(endpoint)
-      end
-
-      it 'defaults to nil' do
-        expect(Ai.config.endpoint).to be_nil
-      end
+      Ai.config.client = nil
     end
 
     describe '.origin' do
@@ -30,10 +17,6 @@ RSpec.describe Ai do
         origin = 'https://app.example.com'
         Ai.config.origin = origin
         expect(Ai.config.origin).to eq(origin)
-      end
-
-      it 'defaults to nil' do
-        expect(Ai.config.origin).to be_nil
       end
     end
 
@@ -44,8 +27,12 @@ RSpec.describe Ai do
         expect(Ai.config.client).to eq(test_client)
       end
 
-      it 'defaults to Mastra client' do
-        expect(Ai.config.client).to be_a(Ai::Clients::Mastra)
+      context 'when the MASTRA_LOCATION environment variable is set' do
+        before { ENV['MASTRA_LOCATION'] = 'https://mastra_host:4111' }
+
+        it 'uses the Mastra client' do
+          expect(Ai.client).to be_a(Ai::Clients::Mastra)
+        end
       end
     end
   end

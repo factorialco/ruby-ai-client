@@ -10,7 +10,12 @@ module Ai
       extend T::Sig
 
       sig { params(endpoint: String).void }
-      def initialize(endpoint = Ai.config.endpoint)
+      def initialize(endpoint)
+        if endpoint.blank?
+          raise Ai::Error,
+                'Mastra endpoint is not set. Please set the MASTRA_LOCATION environment variable or configure the client in the Ai.config object.'
+        end
+
         @endpoint = endpoint
       end
 

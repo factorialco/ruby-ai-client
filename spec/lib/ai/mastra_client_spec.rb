@@ -22,6 +22,15 @@ RSpec.describe Ai::Clients::Mastra do
       }
     end
 
+    context 'when the endpoint is blank' do
+      it 'raises an error' do
+        expect { described_class.new('') }.to raise_error(
+          Ai::Error,
+          'Mastra endpoint is not set. Please set the MASTRA_LOCATION environment variable or configure the client in the Ai.config object.'
+        )
+      end
+    end
+
     it 'generates text using the Mastra API' do
       VCR.use_cassette('mastra_generate_agent_text') do
         result = client.generate('marvin', messages: [Ai.user_message('Hello!')])
