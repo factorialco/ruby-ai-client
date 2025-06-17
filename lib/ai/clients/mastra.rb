@@ -54,7 +54,7 @@ module Ai
       end
       def response(url:, messages:, options:)
         http = Net::HTTP.new(url.host, url.port)
-        http.use_ssl = true
+        http.use_ssl = (url.scheme == 'https')
 
         request = Net::HTTP::Post.new(url)
         request['Content-Type'] = 'text/plain;charset=UTF-8'
