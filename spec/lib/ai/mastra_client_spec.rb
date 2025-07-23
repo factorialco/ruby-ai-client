@@ -32,8 +32,20 @@ RSpec.describe Ai::Clients::Mastra do
     end
 
     it 'generates text using the Mastra API' do
+      telemetry_settings = Ai::TelemetrySettings.new(
+        is_enabled: true,
+        record_inputs: true,
+        record_outputs: true,
+        function_id: 'mastra-text-generation',
+        metadata: { 'agent.name' => 'marvin', 'service.version' => '1.0.0' }
+      )
+
       VCR.use_cassette('mastra_generate_agent_text') do
-        result = client.generate('marvin', messages: [Ai.user_message('Hello!')])
+        result = client.generate(
+          'marvin', 
+          messages: [Ai.user_message('Hello!')],
+          options: { telemetry: telemetry_settings }
+        )
 
         expect(result).to be_a(Hash)
         expect(result).to have_key('text')
@@ -42,13 +54,22 @@ RSpec.describe Ai::Clients::Mastra do
     end
 
     it 'generates structured object using the Mastra API' do
+      telemetry_settings = Ai::TelemetrySettings.new(
+        is_enabled: true,
+        record_inputs: false,
+        record_outputs: true,
+        function_id: 'mastra-object-generation',
+        metadata: { 'agent.name' => 'marvin', 'output.type' => 'Person' }
+      )
+
       VCR.use_cassette('mastra_generate_agent_object') do
         result =
           client.generate(
             'marvin',
             messages: [Ai.user_message('Hello!')],
             options: {
-              output: output_schema
+              output: output_schema,
+              telemetry: telemetry_settings
             }
           )
 
@@ -58,5 +79,7 @@ RSpec.describe Ai::Clients::Mastra do
         expect(result.dig('object', 'age')).to eq(0)
       end
     end
+
+
   end
 end
