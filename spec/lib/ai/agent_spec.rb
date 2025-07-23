@@ -26,7 +26,8 @@ RSpec.describe Ai::Agent do
         options: {
           runtime_context: runtime_context,
           max_retries: 2,
-          max_steps: 5
+          max_steps: 5,
+          telemetry: anything
         }
       ).and_call_original
 
@@ -41,11 +42,51 @@ RSpec.describe Ai::Agent do
           runtime_context: {
           },
           max_retries: 5,
-          max_steps: 10
+          max_steps: 10,
+          telemetry: anything
         }
       ).and_call_original
 
       agent.generate_text(messages: [Ai.user_message('Hello')], max_retries: 5, max_steps: 10)
+    end
+
+    it 'passes telemetry settings to client' do
+      telemetry_settings = Ai::TelemetrySettings.new(
+        is_enabled: true,
+        record_inputs: true,
+        record_outputs: true,
+        function_id: 'test-function',
+        metadata: { 'agent.name' => 'test-agent' }
+      )
+
+      expect(client).to receive(:generate).with(
+        'test',
+        messages: anything,
+        options: {
+          runtime_context: {},
+          max_retries: 2,
+          max_steps: 5,
+          telemetry: telemetry_settings
+        }
+      ).and_call_original
+
+      agent.generate_text(messages: [Ai.user_message('Hello')], telemetry: telemetry_settings)
+    end
+
+    it 'uses default telemetry settings when none provided' do
+      expect(client).to receive(:generate).with(
+        'test',
+        messages: anything,
+        options: {
+          runtime_context: {},
+          max_retries: 2,
+          max_steps: 5,
+          telemetry: kind_of(Ai::TelemetrySettings)
+        }
+      ).and_call_original
+
+      result = agent.generate_text(messages: [Ai.user_message('Hello')])
+      expect(result).to be_a(Ai::GenerateTextResult)
     end
 
     it 'returns proper response structure' do
@@ -103,7 +144,8 @@ RSpec.describe Ai::Agent do
             runtime_context: runtime_context,
             max_retries: 3,
             max_steps: 8,
-            output: anything
+            output: anything,
+            telemetry: anything
           )
       ).and_call_original
 
@@ -113,6 +155,31 @@ RSpec.describe Ai::Agent do
         runtime_context: runtime_context,
         max_retries: 3,
         max_steps: 8
+      )
+    end
+
+    it 'passes telemetry settings for object generation' do
+      telemetry_settings = Ai::TelemetrySettings.new(
+        is_enabled: true,
+        record_inputs: false,
+        record_outputs: true,
+        function_id: 'object-generation',
+        metadata: { 'output.type' => 'Person' }
+      )
+
+      expect(client).to receive(:generate).with(
+        'test',
+        messages: anything,
+        options: hash_including(
+          telemetry: telemetry_settings,
+          output: anything
+        )
+      ).and_call_original
+
+      agent.generate_object(
+        messages: [Ai.user_message('Create person')],
+        output_class: schema,
+        telemetry: telemetry_settings
       )
     end
 
