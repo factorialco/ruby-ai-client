@@ -6,9 +6,9 @@ RSpec.describe Ai::TelemetrySettings do
     subject { described_class.new }
 
     it 'sets correct default values' do
-      expect(subject.is_enabled).to be false
-      expect(subject.record_inputs).to be true
-      expect(subject.record_outputs).to be true
+      expect(subject.is_enabled).to be true
+      expect(subject.record_inputs).to be false
+      expect(subject.record_outputs).to be false
       expect(subject.function_id).to be_nil
       expect(subject.metadata).to eq({})
       expect(subject.tracer).to be_nil
