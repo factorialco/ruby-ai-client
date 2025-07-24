@@ -2,74 +2,76 @@
 # frozen_string_literal: true
 
 RSpec.describe Ai::TelemetrySettings do
-  describe 'initialization with defaults' do
-    subject { described_class.new }
+  describe 'initialization' do
+    context 'with defaults' do
+      subject { described_class.new }
 
-    it 'sets correct default values' do
-      expect(subject.is_enabled).to be true
-      expect(subject.record_inputs).to be false
-      expect(subject.record_outputs).to be false
-      expect(subject.function_id).to be_nil
-      expect(subject.metadata).to eq({})
-      expect(subject.tracer).to be_nil
-    end
-  end
-
-  describe 'initialization with custom values' do
-    subject do
-      described_class.new(
-        is_enabled: true,
-        record_inputs: false,
-        record_outputs: false,
-        function_id: 'my-custom-function',
-        metadata: { 'agent.name' => 'test-agent', 'service.version' => '1.0.0' },
-        tracer: 'custom-tracer'
-      )
+      it 'sets correct default values' do
+        expect(subject.enabled).to be true
+        expect(subject.record_inputs).to be false
+        expect(subject.record_outputs).to be false
+        expect(subject.function_id).to be_nil
+        expect(subject.metadata).to eq({})
+        expect(subject.tracer).to be_nil
+      end
     end
 
-    it 'sets custom values correctly' do
-      expect(subject.is_enabled).to be true
-      expect(subject.record_inputs).to be false
-      expect(subject.record_outputs).to be false
-      expect(subject.function_id).to eq('my-custom-function')
-      expect(subject.metadata).to eq({ 'agent.name' => 'test-agent', 'service.version' => '1.0.0' })
-      expect(subject.tracer).to eq('custom-tracer')
+    context 'with custom values' do
+      subject do
+        described_class.new(
+          enabled: true,
+          record_inputs: false,
+          record_outputs: false,
+          function_id: 'my-custom-function',
+          metadata: { 'agent.name' => 'test-agent', 'service.version' => '1.0.0' },
+          tracer: 'custom-tracer'
+        )
+      end
+
+      it 'sets custom values correctly' do
+        expect(subject.enabled).to be true
+        expect(subject.record_inputs).to be false
+        expect(subject.record_outputs).to be false
+        expect(subject.function_id).to eq('my-custom-function')
+        expect(subject.metadata).to eq({ 'agent.name' => 'test-agent', 'service.version' => '1.0.0' })
+        expect(subject.tracer).to eq('custom-tracer')
+      end
     end
   end
 
   describe 'privacy and security configurations' do
     it 'allows disabling input recording for sensitive data' do
       settings = described_class.new(
-        is_enabled: true,
+        enabled: true,
         record_inputs: false,
         record_outputs: true
       )
 
-      expect(settings.is_enabled).to be true
+      expect(settings.enabled).to be true
       expect(settings.record_inputs).to be false
       expect(settings.record_outputs).to be true
     end
 
     it 'allows disabling output recording for sensitive data' do
       settings = described_class.new(
-        is_enabled: true,
+        enabled: true,
         record_inputs: true,
         record_outputs: false
       )
 
-      expect(settings.is_enabled).to be true
+      expect(settings.enabled).to be true
       expect(settings.record_inputs).to be true
       expect(settings.record_outputs).to be false
     end
 
     it 'allows disabling both inputs and outputs' do
       settings = described_class.new(
-        is_enabled: true,
+        enabled: true,
         record_inputs: false,
         record_outputs: false
       )
 
-      expect(settings.is_enabled).to be true
+      expect(settings.enabled).to be true
       expect(settings.record_inputs).to be false
       expect(settings.record_outputs).to be false
     end
@@ -78,7 +80,7 @@ RSpec.describe Ai::TelemetrySettings do
   describe 'agent identification metadata' do
     it 'supports agent identification in metadata' do
       settings = described_class.new(
-        is_enabled: true,
+        enabled: true,
         function_id: 'agent-marvin-conversation',
         metadata: {
           'agent.name' => 'marvin',

@@ -3,7 +3,7 @@
 module Ai
   class TelemetrySettings < T::Struct
     # Enable or disable telemetry. Enabled by default.
-    const :is_enabled, T::Boolean, default: true
+    const :enabled, T::Boolean, default: true
 
     # Enable or disable input recording. You might want to disable this to avoid 
     # recording sensitive information, reduce data transfers, or increase performance.

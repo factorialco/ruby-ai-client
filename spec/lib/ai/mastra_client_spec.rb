@@ -33,7 +33,7 @@ RSpec.describe Ai::Clients::Mastra do
 
     it 'generates text using the Mastra API' do
       telemetry_settings = Ai::TelemetrySettings.new(
-        is_enabled: true,
+        enabled: true,
         record_inputs: true,
         record_outputs: true,
         function_id: 'mastra-text-generation',
@@ -55,7 +55,7 @@ RSpec.describe Ai::Clients::Mastra do
 
     it 'generates structured object using the Mastra API' do
       telemetry_settings = Ai::TelemetrySettings.new(
-        is_enabled: true,
+        enabled: true,
         record_inputs: false,
         record_outputs: true,
         function_id: 'mastra-object-generation',
@@ -79,7 +79,18 @@ RSpec.describe Ai::Clients::Mastra do
         expect(result.dig('object', 'age')).to eq(0)
       end
     end
+  end
 
+  describe '#map_ruby_key_to_api' do
+    let(:client) { described_class.new('https://app.example.com') }
 
+    it 'maps enabled to is_enabled for API compatibility' do
+      expect(client.send(:map_ruby_key_to_api, 'enabled')).to eq('is_enabled')
+    end
+
+    it 'returns unmapped keys as-is' do
+      expect(client.send(:map_ruby_key_to_api, 'record_inputs')).to eq('record_inputs')
+      expect(client.send(:map_ruby_key_to_api, 'function_id')).to eq('function_id')
+    end
   end
 end
