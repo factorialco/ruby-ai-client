@@ -137,9 +137,9 @@ puts result.text  # Generated text response
 The gem supports OpenTelemetry integration for monitoring and observability. You can configure telemetry settings to control what data is recorded and add metadata for better tracing:
 
 **Telemetry Options:**
-- `is_enabled`: Enable/disable telemetry (default: false)
-- `record_inputs`: Record input messages (default: true, disable for sensitive data)
-- `record_outputs`: Record output responses (default: true, disable for sensitive data)
+- `enabled`: Enable/disable telemetry (default: true)
+- `record_inputs`: Record input messages (default: false, disable for sensitive data)
+- `record_outputs`: Record output responses (default: false, disable for sensitive data)
 - `function_id`: Identifier for grouping telemetry data by function
 - `metadata`: Additional metadata for OpenTelemetry traces (agent identification, service info, etc.)
 
@@ -157,7 +157,8 @@ telemetry_settings = Ai::TelemetrySettings.new(
     'service.namespace' => 'customer-service',
     'cx.application.name' => 'ai-tracing',
     'cx.subsystem.name' => 'mastra-agents'
-  }
+  },
+  tracer:nil
 )
 
 # Use with text generation
