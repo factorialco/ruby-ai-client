@@ -2,10 +2,10 @@
 http_interactions:
 - request:
     method: post
-    uri: https://mastra.local.factorial.dev/api/agents/marvin/generate
+    uri: http://localhost:4111/api/agents/marvin/generate
     body:
       encoding: UTF-8
-      string: '{"messages":[{"role":"user","content":"Hello!"}],"output":{"type":"object","properties":{"name":{"type":"string"},"age":{"type":"integer"}},"required":["name","age"],"additionalProperties":false},"telemetry":{"is_enabled":true,"record_inputs":false,"record_outputs":true,"function_id":"mastra-object-generation","metadata":{"agent.name":"marvin","output.type":"Person"},"tracer":null}}'
+      string: '{"messages":[{"role":"user","content":"Hello!"}],"output":{"type":"object","properties":{"name":{"type":"string"},"age":{"type":"integer"}},"required":["name","age"],"additionalProperties":false},"telemetry":{"enabled":true,"record_inputs":false,"record_outputs":true,"function_id":"mastra-object-generation","metadata":{"agent.name":"marvin","output.type":"Person"},"tracer":null}}'
     headers:
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
@@ -14,7 +14,7 @@ http_interactions:
       User-Agent:
       - Ruby
       Host:
-      - mastra.local.factorial.dev
+      - localhost:4111
       Content-Type:
       - text/plain;charset=UTF-8
   response:
@@ -26,26 +26,30 @@ http_interactions:
       - "*"
       Access-Control-Expose-Headers:
       - Content-Length,X-Requested-With
-      Content-Length:
-      - '3442'
       Content-Type:
       - application/json
+      Content-Length:
+      - '3478'
       Date:
-      - Wed, 23 Jul 2025 16:40:18 GMT
+      - Thu, 24 Jul 2025 12:03:43 GMT
+      Connection:
+      - keep-alive
+      Keep-Alive:
+      - timeout=5
     body:
       encoding: UTF-8
-      string: '{"object":{"name":"Hello!","age":0},"finishReason":"stop","usage":{"promptTokens":169,"completionTokens":11,"totalTokens":180},"warnings":[],"providerMetadata":{"openai":{"reasoningTokens":0,"acceptedPredictionTokens":0,"rejectedPredictionTokens":0,"cachedPromptTokens":0}},"experimental_providerMetadata":{"openai":{"reasoningTokens":0,"acceptedPredictionTokens":0,"rejectedPredictionTokens":0,"cachedPromptTokens":0}},"response":{"id":"chatcmpl-BwWnqzkExwcs4rJX5SZfmbZEA9IaY","timestamp":"2025-07-23T16:40:18.000Z","modelId":"gpt-4o-2024-08-06","headers":{"apim-request-id":"0341b198-0a83-4bb0-97ce-690772ed4263","azureml-model-session":"d563-20250514034522","content-length":"1045","content-type":"application/json","date":"Wed,
-        23 Jul 2025 16:40:18 GMT","strict-transport-security":"max-age=31536000; includeSubDomains;
+      string: '{"object":{"name":"Hello!","age":0},"finishReason":"stop","usage":{"promptTokens":169,"completionTokens":11,"totalTokens":180},"warnings":[],"providerMetadata":{"openai":{"reasoningTokens":0,"acceptedPredictionTokens":0,"rejectedPredictionTokens":0,"cachedPromptTokens":0}},"experimental_providerMetadata":{"openai":{"reasoningTokens":0,"acceptedPredictionTokens":0,"rejectedPredictionTokens":0,"cachedPromptTokens":0}},"response":{"id":"chatcmpl-BwoxiHlmXP3LBsObwJ4TVpRnq5Q1r","timestamp":"2025-07-24T12:03:42.000Z","modelId":"gpt-4o-2024-08-06","headers":{"apim-request-id":"da74bef5-e106-4934-a995-6615e75956b1","azureml-model-session":"d563-20250514034522","content-length":"1099","content-type":"application/json","date":"Thu,
+        24 Jul 2025 12:03:42 GMT","strict-transport-security":"max-age=31536000; includeSubDomains;
         preload","x-accel-buffering":"no","x-content-type-options":"nosniff","x-ms-deployment-name":"gpt-4o","x-ms-rai-invoked":"true","x-ms-region":"Sweden
-        Central","x-ratelimit-limit-requests":"500","x-ratelimit-limit-tokens":"50000","x-ratelimit-remaining-requests":"498","x-ratelimit-remaining-tokens":"49626","x-request-id":"e0f1b31e-d85c-4141-b473-95dc7809f5a4"},"body":{"choices":[{"content_filter_results":{},"finish_reason":"stop","index":0,"logprobs":null,"message":{"annotations":[],"content":null,"refusal":null,"role":"assistant","tool_calls":[{"function":{"arguments":"{\"name\":\"Hello!\",\"age\":0}","name":"json"},"id":"call_ctnFPkYMgk3iSg63eX0AM2iB","type":"function"}]}}],"created":1753288818,"id":"chatcmpl-BwWnqzkExwcs4rJX5SZfmbZEA9IaY","model":"gpt-4o-2024-08-06","object":"chat.completion","prompt_filter_results":[{"prompt_index":0,"content_filter_results":{"hate":{"filtered":false,"severity":"safe"},"jailbreak":{"filtered":false,"detected":false},"self_harm":{"filtered":false,"severity":"safe"},"sexual":{"filtered":false,"severity":"safe"},"violence":{"filtered":false,"severity":"safe"}}}],"system_fingerprint":"fp_ee1d74bde0","usage":{"completion_tokens":11,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"prompt_tokens":169,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":180}}},"request":{"body":"{\"model\":\"gpt-4o\",\"temperature\":0,\"messages\":[{\"role\":\"system\",\"content\":\"\\n      You
-        are a helpful assistant specialized in data and reports.\\n      \\n      When
+        Central","x-ratelimit-limit-requests":"500","x-ratelimit-limit-tokens":"50000","x-ratelimit-remaining-requests":"498","x-ratelimit-remaining-tokens":"49636","x-request-id":"a4f31cbe-1ef3-472e-83ee-09dbe1240ec2"},"body":{"choices":[{"content_filter_results":{},"finish_reason":"stop","index":0,"logprobs":null,"message":{"annotations":[],"content":null,"refusal":null,"role":"assistant","tool_calls":[{"function":{"arguments":"{\"name\":\"Hello!\",\"age\":0}","name":"json"},"id":"call_dkddZXY0Bb7ds7yiIwEnT9Aq","type":"function"}]}}],"created":1753358622,"id":"chatcmpl-BwoxiHlmXP3LBsObwJ4TVpRnq5Q1r","model":"gpt-4o-2024-08-06","object":"chat.completion","prompt_filter_results":[{"prompt_index":0,"content_filter_results":{"hate":{"filtered":false,"severity":"safe"},"indirect_attack":{"detected":false,"filtered":false},"jailbreak":{"detected":false,"filtered":false},"self_harm":{"filtered":false,"severity":"safe"},"sexual":{"filtered":false,"severity":"safe"},"violence":{"filtered":false,"severity":"safe"}}}],"system_fingerprint":"fp_ee1d74bde0","usage":{"completion_tokens":11,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"prompt_tokens":169,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":180}}},"request":{"body":"{\"model\":\"gpt-4o\",\"temperature\":0,\"messages\":[{\"role\":\"system\",\"content\":\"\\n    You
+        are a helpful assistant specialized in data and reports.\\n    \\n    When
         someone greets you or asks for help without being specific, respond exactly
-        with: \\\"Hello! What data or report can I help you retrieve today?\\\"\\n      \\n      When
+        with: \\\"Hello! What data or report can I help you retrieve today?\\\"\\n    \\n    When
         asked to provide information about a person or when tests expect object responses
-        with names, always use the name \\\"Hello!\\\" as the default name value.\\n      \\n      When
+        with names, always use the name \\\"Hello!\\\" as the default name value.\\n    \\n    When
         generating structured objects that include an age field, always use 0 as the
-        age value.\\n      \\n      Be precise with these specific responses to match
+        age value.\\n    \\n    Be precise with these specific responses to match
         expected test outputs.\\n\"},{\"role\":\"user\",\"content\":\"Hello!\"}],\"tool_choice\":{\"type\":\"function\",\"function\":{\"name\":\"json\"}},\"tools\":[{\"type\":\"function\",\"function\":{\"name\":\"json\",\"description\":\"Respond
         with a JSON object.\",\"parameters\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"age\":{\"type\":\"integer\"}},\"required\":[\"name\",\"age\"],\"additionalProperties\":false,\"$schema\":\"http://json-schema.org/draft-07/schema#\"}}}]}"}}'
-  recorded_at: Wed, 23 Jul 2025 16:40:18 GMT
+  recorded_at: Thu, 24 Jul 2025 12:03:43 GMT
 recorded_with: VCR 6.3.1
