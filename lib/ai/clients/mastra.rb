@@ -9,6 +9,11 @@ module Ai
     class Mastra < Ai::Client
       extend T::Sig
 
+      RUBY_TO_API_KEY_MAPPING = T.let({
+        'enabled' => 'is_enabled'
+      }.freeze, 
+T::Hash[String, String])
+
       sig { params(endpoint: String).void }
       def initialize(endpoint)
         if endpoint.blank?
@@ -45,6 +50,11 @@ module Ai
 
       private
 
+      sig { params(key: String).returns(String) }
+      def map_ruby_key_to_api(key)
+        RUBY_TO_API_KEY_MAPPING.fetch(key, key)
+      end
+
       sig do
         params(
           url: URI::Generic,
@@ -61,7 +71,11 @@ module Ai
         request['Origin'] = Ai.config.origin
 
         # convert to camelCase and unpacking for API compatibility
-        camelized_options = options.deep_transform_keys { |key| key.to_s.camelize(:lower).to_sym }
+        camelized_options = options.deep_transform_keys do |key|
+          mapped_key = map_ruby_key_to_api(key.to_s)
+          mapped_key.camelize(:lower).to_sym
+        end
+        
         request.body = { messages: messages, **camelized_options }.to_json
 
         response = http.request(request)
