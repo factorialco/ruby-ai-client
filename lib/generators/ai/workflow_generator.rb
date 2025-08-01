@@ -35,7 +35,6 @@ module Ai
                    desc: 'Output directory for workflow files',
                    default: 'app/generated/ai/workflows'
 
-      # Entrypoint – rails generator calls +#generate_workflows+
       def generate_workflows
         options[:all] ? generate_all_workflows : generate_single_workflow(options[:name])
       end

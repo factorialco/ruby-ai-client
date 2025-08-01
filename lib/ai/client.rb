@@ -22,5 +22,17 @@ module Ai
     end
     def generate(agent_name, messages:, options: {})
     end
+
+    sig do
+      abstract
+        .params(workflow_name: String, input: T::Struct)
+        .returns(T::Hash[T.untyped, T.untyped])
+    end
+    def run_workflow(workflow_name, input:)
+    end
+
+    sig { abstract.params(workflow_name: String).returns(T::Hash[String, T.untyped]) }
+    def get_workflow(workflow_name)
+    end
   end
 end

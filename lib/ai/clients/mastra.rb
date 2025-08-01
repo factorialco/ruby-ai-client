@@ -44,7 +44,11 @@ module Ai
         JSON.parse(generated_response.body).deep_transform_keys(&:underscore)
       end
 
-      sig { params(workflow_name: String, input: T::Struct).returns(T::Hash[T.untyped, T.untyped]) }
+      sig do
+        override
+          .params(workflow_name: String, input: T::Struct)
+          .returns(T::Hash[T.untyped, T.untyped])
+      end
       def run_workflow(workflow_name, input:)
         run_id = SecureRandom.uuid
 
@@ -92,7 +96,7 @@ module Ai
         raise Ai::Error, 'Timeout while connecting to Mastra service'
       end
 
-      sig { params(workflow_name: String).returns(T::Hash[String, T.untyped]) }
+      sig { override.params(workflow_name: String).returns(T::Hash[String, T.untyped]) }
       def get_workflow(workflow_name)
         url = URI.join(@endpoint, "api/workflows/#{workflow_name}")
 
