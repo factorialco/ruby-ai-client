@@ -50,12 +50,12 @@ module Ai
 
         say 'Fetching workflows from Mastra...', :green
         workflow_names = fetch_workflow_names
-
         if workflow_names.empty?
           say 'No workflows found. Exiting.', :yellow
           return
         end
 
+        workflow_names = workflow_names.compact.reject { |n| n.to_s.strip.empty? }
         say "Found #{workflow_names.length} workflows: #{workflow_names.join(', ')}", :blue
 
         generated_count = 0
@@ -112,7 +112,6 @@ module Ai
         create_file target_path, template_content
       end
 
-      # Generates the ERB template content string for the workflow file
       def render_workflow_template(workflow_name)
         template_path = File.join(self.class.source_root, 'workflow.rb.erb')
         template_content = File.read(template_path)
@@ -128,7 +127,7 @@ module Ai
         input_struct = SchemaToStructString.convert(input_schema, class_name: 'Input')
         output_struct = SchemaToStructString.convert(output_schema, class_name: 'Output')
 
-        # Indent by 6 spaces to correctly place within module hierarchy
+        # to correctly place within module hierarchy
         @input_struct = indent(input_struct, 6)
         @output_struct = indent(output_struct, 6)
         @workflow_name = workflow_name
@@ -136,7 +135,6 @@ module Ai
         erb.result(binding)
       end
 
-      # Returns an array of workflow names available in the Mastra instance
       def fetch_workflow_names
         validate_endpoint!
         Ai.config.endpoint = options[:endpoint]
@@ -145,7 +143,6 @@ module Ai
         JSON.parse(response).keys
       end
 
-      # Fetches the workflow details from Mastra
       def fetch_workflow(workflow_name)
         validate_endpoint!
         Ai.config.endpoint = options[:endpoint]
@@ -177,12 +174,10 @@ module Ai
         end
       end
 
-      # Simple indentation helper – adds +n+ spaces to the beginning of every line
       def indent(str, n)
         str.split("\n").map { |line| (' ' * n) + line }.join("\n")
       end
 
-      # Expands the output directory relative to Rails.root when available
       def output_directory
         if defined?(Rails) && Rails.respond_to?(:root)
           Rails.root.join(options[:output]).to_s
