@@ -1,0 +1,115 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://mastra.local.factorial.dev/api/workflows/testWorkflow/create-run?runId=7d583fcb-89c7-4da9-90a1-6274f768247f
+    body:
+      encoding: UTF-8
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+      Host:
+      - mastra.local.factorial.dev
+      Content-Type:
+      - application/json
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Expose-Headers:
+      - Content-Length,X-Requested-With
+      Content-Length:
+      - '48'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 31 Jul 2025 15:37:12 GMT
+      Vary:
+      - Origin
+    body:
+      encoding: UTF-8
+      string: '{"runId":"7d583fcb-89c7-4da9-90a1-6274f768247f"}'
+  recorded_at: Thu, 31 Jul 2025 15:37:12 GMT
+- request:
+    method: post
+    uri: https://mastra.local.factorial.dev/api/workflows/testWorkflow/stream?runId=7d583fcb-89c7-4da9-90a1-6274f768247f
+    body:
+      encoding: UTF-8
+      string: '{"inputData":{"first_number":3,"second_number":5},"runtimeContext":{}}'
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+      Host:
+      - mastra.local.factorial.dev
+      Content-Type:
+      - application/json
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Expose-Headers:
+      - Content-Length,X-Requested-With
+      Content-Type:
+      - text/plain; charset=UTF-8
+      Date:
+      - Thu, 31 Jul 2025 15:37:12 GMT
+      Vary:
+      - Origin
+      Transfer-Encoding:
+      - chunked
+    body:
+      encoding: UTF-8
+      string: "{\"type\":\"start\",\"payload\":{\"runId\":\"7d583fcb-89c7-4da9-90a1-6274f768247f\"}}\x1E{\"type\":\"step-start\",\"payload\":{\"id\":\"mapping_986c49bf-b309-451f-8550-8d1ad735b85f\",\"payload\":{\"first_number\":3,\"second_number\":5},\"startedAt\":1753976232297,\"status\":\"running\"}}\x1E{\"type\":\"step-result\",\"payload\":{\"id\":\"mapping_986c49bf-b309-451f-8550-8d1ad735b85f\",\"status\":\"success\",\"output\":{\"sumOfNumbers\":8},\"endedAt\":1753976232298}}\x1E{\"type\":\"step-finish\",\"payload\":{\"id\":\"mapping_986c49bf-b309-451f-8550-8d1ad735b85f\",\"metadata\":{}}}\x1E{\"type\":\"finish\",\"payload\":{\"runId\":\"7d583fcb-89c7-4da9-90a1-6274f768247f\"}}\x1E"
+  recorded_at: Thu, 31 Jul 2025 15:37:12 GMT
+- request:
+    method: get
+    uri: https://mastra.local.factorial.dev/api/workflows/testWorkflow/runs/7d583fcb-89c7-4da9-90a1-6274f768247f/execution-result
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+      Host:
+      - mastra.local.factorial.dev
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Expose-Headers:
+      - Content-Length,X-Requested-With
+      Content-Length:
+      - '343'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 31 Jul 2025 15:37:12 GMT
+      Vary:
+      - Origin
+    body:
+      encoding: UTF-8
+      string: '{"status":"success","result":{"sumOfNumbers":8},"payload":{"first_number":3,"second_number":5},"steps":{"input":{"first_number":3,"second_number":5},"mapping_986c49bf-b309-451f-8550-8d1ad735b85f":{"payload":{"first_number":3,"second_number":5},"startedAt":1753976232297,"status":"success","output":{"sumOfNumbers":8},"endedAt":1753976232298}}}'
+  recorded_at: Thu, 31 Jul 2025 15:37:12 GMT
+recorded_with: VCR 6.3.1

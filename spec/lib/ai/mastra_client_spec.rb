@@ -32,20 +32,27 @@ RSpec.describe Ai::Clients::Mastra do
     end
 
     it 'generates text using the Mastra API' do
-      telemetry_settings = Ai::TelemetrySettings.new(
-        is_enabled: true,
-        record_inputs: true,
-        record_outputs: true,
-        function_id: 'mastra-text-generation',
-        metadata: { 'agent.name' => 'marvin', 'service.version' => '1.0.0' }
-      )
+      telemetry_settings =
+        Ai::TelemetrySettings.new(
+          is_enabled: true,
+          record_inputs: true,
+          record_outputs: true,
+          function_id: 'mastra-text-generation',
+          metadata: {
+            'agent.name' => 'marvin',
+            'service.version' => '1.0.0'
+          }
+        )
 
       VCR.use_cassette('mastra_generate_agent_text') do
-        result = client.generate(
-          'marvin', 
-          messages: [Ai.user_message('Hello!')],
-          options: { telemetry: telemetry_settings }
-        )
+        result =
+          client.generate(
+            'marvin',
+            messages: [Ai.user_message('Hello!')],
+            options: {
+              telemetry: telemetry_settings
+            }
+          )
 
         expect(result).to be_a(Hash)
         expect(result).to have_key('text')
@@ -54,13 +61,17 @@ RSpec.describe Ai::Clients::Mastra do
     end
 
     it 'generates structured object using the Mastra API' do
-      telemetry_settings = Ai::TelemetrySettings.new(
-        is_enabled: true,
-        record_inputs: false,
-        record_outputs: true,
-        function_id: 'mastra-object-generation',
-        metadata: { 'agent.name' => 'marvin', 'output.type' => 'Person' }
-      )
+      telemetry_settings =
+        Ai::TelemetrySettings.new(
+          is_enabled: true,
+          record_inputs: false,
+          record_outputs: true,
+          function_id: 'mastra-object-generation',
+          metadata: {
+            'agent.name' => 'marvin',
+            'output.type' => 'Person'
+          }
+        )
 
       VCR.use_cassette('mastra_generate_agent_object') do
         result =
@@ -79,7 +90,26 @@ RSpec.describe Ai::Clients::Mastra do
         expect(result.dig('object', 'age')).to eq(0)
       end
     end
+  end
 
+  describe '#run_workflow' do
+    let(:workflow_name) { 'testWorkflow' }
+    let(:input) do
+      unnamed_struct =
+        Class.new(T::Struct) do
+          const :first_number, Integer
+          const :second_number, Integer
+        end
 
+      unnamed_struct.new(first_number: 3, second_number: 5)
+    end
+
+    it 'executes the workflow and returns the summed result' do
+      VCR.use_cassette('mastra_workflow_run') do
+        result = client.run_workflow(workflow_name, input: input)
+
+        expect(result).to eq('sumOfNumbers' => 8)
+      end
+    end
   end
 end

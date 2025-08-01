@@ -1,0 +1,41 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://mastra.local.factorial.dev/api/workflows/testWorkflow
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+      Host:
+      - mastra.local.factorial.dev
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Expose-Headers:
+      - Content-Length,X-Requested-With
+      Content-Length:
+      - '2087'
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 01 Aug 2025 09:47:51 GMT
+      Vary:
+      - Origin
+    body:
+      encoding: UTF-8
+      string: '{"steps":{},"allSteps":{},"name":"test-workflow","description":"Adds
+        two numbers and returns the result","stepGraph":[{"type":"step","step":{"id":"mapping_e0d7ec2b-8635-4c35-951b-c691a598914e","mapConfig":"async
+        ({ inputData }) => ({\n  sumOfNumbers: inputData.first_number + inputData.second_number\n})"}}],"inputSchema":"{\"json\":{\"type\":\"object\",\"properties\":{\"first_number\":{\"type\":\"number\"},\"second_number\":{\"type\":\"number\"},\"testing_params\":{\"type\":\"object\",\"properties\":{\"string_param\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":50},\"number_param\":{\"type\":\"integer\",\"exclusiveMinimum\":0,\"exclusiveMaximum\":1000},\"boolean_param\":{\"type\":\"boolean\"},\"array_param\":{\"type\":\"array\",\"items\":{\"type\":\"string\"},\"minItems\":1},\"enum_param\":{\"type\":\"string\",\"enum\":[\"option1\",\"option2\",\"option3\"]},\"date_param\":{\"type\":\"string\",\"format\":\"date-time\"},\"tuple_param\":{\"type\":\"array\",\"minItems\":3,\"maxItems\":3,\"items\":[{\"type\":\"string\"},{\"type\":\"number\"},{\"type\":\"boolean\"}]},\"union_param\":{\"type\":[\"string\",\"number\"]},\"nested_param\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\",\"format\":\"uuid\"},\"tags\":{\"type\":\"array\",\"items\":{\"type\":\"string\"},\"maxItems\":5}},\"required\":[\"id\",\"tags\"],\"additionalProperties\":false},\"literal_param\":{\"type\":\"string\",\"const\":\"fixed_value\"},\"defaulted_param\":{\"type\":\"string\",\"default\":\"hello\"},\"any_param\":{}},\"required\":[\"number_param\",\"boolean_param\",\"array_param\",\"enum_param\",\"date_param\",\"tuple_param\",\"union_param\",\"nested_param\",\"literal_param\"],\"additionalProperties\":false}},\"required\":[\"first_number\",\"second_number\"],\"additionalProperties\":false,\"$schema\":\"http://json-schema.org/draft-07/schema#\"}}","outputSchema":"{\"json\":{\"type\":\"object\",\"properties\":{\"sumOfNumbers\":{\"type\":\"number\"}},\"required\":[\"sumOfNumbers\"],\"additionalProperties\":false,\"$schema\":\"http://json-schema.org/draft-07/schema#\"}}"}'
+  recorded_at: Fri, 01 Aug 2025 09:47:51 GMT
+recorded_with: VCR 6.3.1

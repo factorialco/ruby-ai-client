@@ -56,7 +56,7 @@ module Ai
     Ai::Message.new(role: Ai::MessageRole::System, content: content)
   end
 
-  sig { returns(T.nilable(Ai::Client)) }
+  sig { returns(Ai::Client) }
   def self.client
     @client ||=
       T.let(

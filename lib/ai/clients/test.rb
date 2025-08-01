@@ -100,6 +100,41 @@ module Ai
           }
         end
       end
+
+      sig do
+        override
+          .params(workflow_name: String, input: T::Struct)
+          .returns(T::Hash[T.untyped, T.untyped])
+      end
+      def run_workflow(workflow_name, input:)
+        @returned_object
+      end
+
+      sig { override.params(workflow_name: String).returns(T::Hash[String, T.untyped]) }
+      def workflow(workflow_name)
+        minimal_schema_json = {
+          json: {
+            type: 'object',
+            properties: {
+            },
+            required: [],
+            additionalProperties: false,
+            '$schema': 'http://json-schema.org/draft-07/schema#'
+          }
+        }.to_json
+
+        {
+          'steps' => {
+          },
+          'all_steps' => {
+          },
+          'name' => workflow_name,
+          'description' => 'Test workflow used by Ai::Clients::Test',
+          'step_graph' => [],
+          'input_schema' => minimal_schema_json,
+          'output_schema' => minimal_schema_json
+        }
+      end
     end
   end
 end
