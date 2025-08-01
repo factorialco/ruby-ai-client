@@ -29,6 +29,7 @@ RSpec.describe Ai::SchemaToStructString do
   #     }),
   #     literal_param: z.literal('fixed_value'),
   #     defaulted_param: z.string().default('hello'),
+  #     any_param: z.any().optional(),
   #   }).optional(),
   # })
   let(:schema_string) do
@@ -75,6 +76,7 @@ RSpec.describe Ai::SchemaToStructString do
           const :literal_param, String
           # default: "hello"
           const :defaulted_param, T.nilable(String)
+          const :any_param, T.untyped
         end
 
         class Input < T::Struct
