@@ -54,7 +54,9 @@ module Ai
 
       properties.each do |prop_name, prop_schema|
         prop_type = sorbet_type(prop_name, prop_schema, depth)
-        prop_type = "T.nilable(#{prop_type})" unless required.include?(prop_name)
+        unless required.include?(prop_name) || prop_type == 'T.untyped'
+          prop_type = "T.nilable(#{prop_type})"
+        end
 
         comment = build_comment(prop_schema)
         lines << "  #{comment}" if comment
