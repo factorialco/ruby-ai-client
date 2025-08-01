@@ -115,7 +115,7 @@ module Ai
             items.map.with_index do |schema, idx|
               sorbet_type("#{prop_name.to_s.singularize}_#{idx}", schema, depth + 1)
             end
-          "T.tuple(#{tuple_types.join(', ')})"
+          "T::Array[T.any(#{tuple_types.join(', ')})]"
         else
           "T::Array[#{sorbet_type(prop_name.to_s.singularize, items, depth + 1)}]"
         end

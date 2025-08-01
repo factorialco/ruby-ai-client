@@ -68,7 +68,7 @@ RSpec.describe Ai::SchemaToStructString do
           # format: date-time
           const :date_param, Time
           # minItems: 3, maxItems: 3
-          const :tuple_param, T.tuple(String, Float, T::Boolean)
+          const :tuple_param, T::Array[T.any(String, Float, T::Boolean)]
           const :union_param, T.any(String, Float)
           const :nested_param, NestedParam
           # const: "fixed_value"
