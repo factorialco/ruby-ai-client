@@ -49,15 +49,13 @@ module Ai
         validate_endpoint!
 
         say 'Fetching workflows from Mastra...', :green
-        workflow_names = fetch_workflow_names
+        workflow_names = workflow_names
         if workflow_names.empty?
           say 'No workflows found. Exiting.', :yellow
           return
         end
 
-        workflow_names = workflow_names.compact.reject { |n| n.to_s.strip.empty? }
         say "Found #{workflow_names.length} workflows: #{workflow_names.join(', ')}", :blue
-
         generated_count = 0
         skipped_count = 0
         errors = []
@@ -119,7 +117,7 @@ module Ai
 
         Ai.config.endpoint = options[:endpoint] if options[:endpoint]
 
-        workflow = fetch_workflow(workflow_name)
+        workflow = workflow(workflow_name)
 
         input_schema = workflow.fetch('input_schema')
         output_schema = workflow.fetch('output_schema')
@@ -135,7 +133,7 @@ module Ai
         erb.result(binding)
       end
 
-      def fetch_workflow_names
+      def workflow_names
         validate_endpoint!
         Ai.config.endpoint = options[:endpoint]
         url = URI.join(options[:endpoint] || ENV['MASTRA_LOCATION'], 'api/workflows')
@@ -143,14 +141,14 @@ module Ai
         JSON.parse(response).keys
       end
 
-      def fetch_workflow(workflow_name)
+      def workflow(workflow_name)
         validate_endpoint!
         Ai.config.endpoint = options[:endpoint]
 
         client =
           Ai.config.client ||
             Ai::Clients::Mastra.new(options[:endpoint] || ENV.fetch('MASTRA_LOCATION'))
-        client.get_workflow(workflow_name)
+        client.workflow(workflow_name)
       end
 
       #####################

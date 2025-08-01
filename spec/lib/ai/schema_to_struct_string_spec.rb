@@ -34,7 +34,7 @@ RSpec.describe Ai::SchemaToStructString do
   # })
   let(:schema_string) do
     VCR.use_cassette('mastra_get_workflow') do
-      workflow = client.get_workflow(workflow_name)
+      workflow = client.workflow(workflow_name)
       workflow.fetch('input_schema')
     end
   end

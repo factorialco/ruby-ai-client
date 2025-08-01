@@ -111,7 +111,7 @@ module Ai
       end
 
       sig { override.params(workflow_name: String).returns(T::Hash[String, T.untyped]) }
-      def get_workflow(workflow_name)
+      def workflow(workflow_name)
         minimal_schema_json = {
           json: {
             type: 'object',

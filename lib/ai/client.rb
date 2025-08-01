@@ -32,7 +32,7 @@ module Ai
     end
 
     sig { abstract.params(workflow_name: String).returns(T::Hash[String, T.untyped]) }
-    def get_workflow(workflow_name)
+    def workflow(workflow_name)
     end
   end
 end
