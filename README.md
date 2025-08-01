@@ -183,7 +183,7 @@ result = agent.generate_object(
 Mastra "workflows" let you orchestrate multiple agents to solve a task.  
 The generator creates a lightweight Ruby wrapper that exposes typed `Input` and `Output` structs and a convenience `.call` method.
 
-⚠️ there is no auto-converstion between snake case to pascal case (my_var → myVar) or back.
+⚠️ there is no auto-conversion between snake case to pascal case (my_var → myVar) or back.
 
 ### 1. Generate a Workflow Client
 
