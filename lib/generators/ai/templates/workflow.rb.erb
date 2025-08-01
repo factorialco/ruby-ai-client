@@ -20,7 +20,7 @@ module Ai
 <%= @output_struct %>
 
       sig { params(input: Input).returns(Output) }
-      def self.call(input:)
+      def self.call(input)
         response = Ai.client.run_workflow('<%= @workflow_name %>', input:)
         TypeCoerce[Output].from(response)
       rescue TypeCoerce::CoercionError, ArgumentError => e

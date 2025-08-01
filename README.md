@@ -9,7 +9,10 @@ A Ruby gem for integrating AI agents from Mastra into your Rails application. Th
   - [1. Create an Agent in Mastra](#1-create-an-agent-in-mastra)
   - [2. Generate the Agent Client](#2-generate-the-agent-client)
   - [3. Use the Agent in Your Rails Application](#3-use-the-agent-in-your-rails-application)
-- [Generator Commands](#generator-commands)
+- [Workflows](#workflows)
+  - [Generate a Workflow Client](#generate-a-workflow-client)
+  - [Use the Workflow](#use-the-workflow)
+- [Generator Options](#generator-options)
 
 ## Overview
 
@@ -175,13 +178,87 @@ result = agent.generate_object(
 ```
 
 
-## Generating your agents
+## Workflows
 
-### `rails generate ai:agent AGENT_NAME [options]`
+Mastra "workflows" let you orchestrate multiple agents to solve a task.  
+The generator creates a lightweight Ruby wrapper that exposes typed `Input` and `Output` structs and a convenience `.call` method.
 
-Generates a Ruby client for a specific agent or all agents from Mastra.
+⚠️ there is no auto-converstion between snake case to pascal case (my_var → myVar) or back.
+
+### 1. Generate a Workflow Client
+
+```bash
+# Generate a specific workflow
+bin/rails generate ai:workflow --name="testWorkflow"
+
+# Generate all workflows present in Mastra
+bin/rails generate ai:workflow --all
+```
+
+The generator will create files in `app/generated/ai/workflows/`.
+
+### 2. Use the Workflow
+
+```ruby
+input = Ai::Workflows::TestWorkflow::Input.new(
+  first_number: 2.0,
+  second_number: 3.0
+)
+
+# Run the workflow
+result = Ai::Workflows::TestWorkflow.call(input)
+
+puts result.sumOfNumbers # => 5.0
+```
+
+Example generated wrapper:
+
+```ruby
+module Ai
+  module Workflows
+    class TestWorkflow
+      extend T::Sig
+      
+      class Input < T::Struct
+        const :first_number, Float
+        const :second_number, Float
+      end
+
+      class Output < T::Struct
+        const :sumOfNumbers, Float
+      end
+
+      sig { params(input: Input).returns(Output) }
+      def self.call(input:)
+        response = Ai.client.run_workflow('testWorkflow', input:)
+        TypeCoerce[Output].from(response)
+      rescue TypeCoerce::CoercionError, ArgumentError => e
+        raise Ai::Error, "Workflow 'testWorkflow' output could not be coerced: #{e.message}"
+      end
+    end
+  end
+end
+```
+
+## Generator Options
+
+Both `ai:agent` and `ai:workflow` generators accept the same set of command-line flags:
+
+- `--endpoint URL` – Mastra API endpoint URL (default: value from `MASTRA_LOCATION` environment variable).
+- `--all` – Generate all agents/workflows found in Mastra.
+- `--name NAME` – Name of the agent/workflow to generate (required unless `--all` is provided).
+- `--force` – Override existing files if they already exist.
+- `--output PATH` – Output directory for generated files.
+  - Agents default: `app/generated/ai/agents`
+  - Workflows default: `app/generated/ai/workflows`
+
+### Generating your agents/workflows
+
+`rails generate ai:agent AGENT_NAME [options]`
+`rails generate ai:workflow WORKFLOW_NAME [options]`
 
 #### Basic Examples
+The same applies for workflows.
 
 ```bash
 # Generate a specific agent
@@ -190,13 +267,6 @@ bin/rails generate ai:agent my_agent --endpoint http://localhost:4111
 # Generate all agents from Mastra
 bin/rails generate ai:agent --all --endpoint http://localhost:4111
 ```
-
-#### Options
-
-- `--endpoint URL` - Mastra API endpoint URL (default: `MASTRA_LOCATION` environment variable)
-- `--all` - Generate all agents from Mastra instead of a specific one
-- `--force` - Override existing files
-- `--output PATH` - Output directory for agent files (default: `app/ai/agents`)
 
 #### Advanced Examples
 
