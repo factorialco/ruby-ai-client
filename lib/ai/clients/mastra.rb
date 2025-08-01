@@ -92,6 +92,29 @@ module Ai
         raise Ai::Error, 'Timeout while connecting to Mastra service'
       end
 
+      sig { params(workflow_name: String).returns(T::Hash[String, T.untyped]) }
+      def get_workflow(workflow_name)
+        url = URI.join(@endpoint, "api/workflows/#{workflow_name}")
+
+        http = Net::HTTP.new(url.host, url.port)
+        http.use_ssl = (url.scheme == 'https')
+
+        request = Net::HTTP::Get.new(url)
+        request['Origin'] = Ai.config.origin
+
+        response = http.request(request)
+
+        unless response.is_a?(Net::HTTPSuccess)
+          raise Ai::Error, "Mastra error – could not fetch workflow: #{response.body}"
+        end
+
+        JSON.parse(response.body).deep_transform_keys(&:underscore)
+      rescue SocketError
+        raise Ai::Error, "Could not resolve endpoint: #{url}"
+      rescue Timeout::Error
+        raise Ai::Error, 'Timeout while connecting to Mastra service'
+      end
+
       private
 
       sig do

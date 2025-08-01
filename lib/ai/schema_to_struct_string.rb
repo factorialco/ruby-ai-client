@@ -1,0 +1,190 @@
+# typed: strict
+
+require 'json'
+require 'active_support/inflector'
+
+module Ai
+  # Utility class that converts a JSON-Schema string into a +T::Struct+ Ruby
+  # class definition.
+  #
+  # The resulting definition is returned as a *string* so that it can be
+  # injected into ERB templates when auto-generating files.
+  class SchemaToStructString
+    extend T::Sig
+
+    sig { params(schema: String, class_name: String).returns(String) }
+    def self.convert(schema, class_name: 'Input')
+      new(schema, class_name: class_name).convert
+    end
+
+    sig { params(schema: String, class_name: String).void }
+    def initialize(schema, class_name: 'Input')
+      @schema = schema
+      @root_class_name = class_name
+      @generated_classes = T.let(Set.new, T::Set[String])
+      @nested_definitions = T.let([], T::Array[String])
+    end
+
+    sig { returns(String) }
+    def convert
+      main_definition = generate_struct(parsed_schema, @root_class_name)
+      (@nested_definitions + [main_definition]).join("\n\n")
+    end
+
+    sig { returns(T::Hash[String, T.untyped]) }
+    def parsed_schema
+      @parsed_schema ||= T.let(JSON.parse(@schema)['json'], T.nilable(T::Hash[String, T.untyped]))
+    rescue JSON::ParserError => e
+      raise ArgumentError, "Invalid JSON schema provided: #{e.message}"
+    end
+
+    sig do
+      params(
+        schema_hash: T::Hash[T.any(Symbol, String), T.untyped],
+        class_name: String,
+        depth: Integer
+      ).returns(String)
+    end
+    def generate_struct(schema_hash, class_name, depth = 0)
+      properties = T.let(schema_hash.fetch('properties', {}), T::Hash[String, T.untyped])
+      required = T.let(schema_hash.fetch('required', []), T::Array[String])
+
+      lines = []
+      lines << "class #{class_name} < T::Struct"
+
+      properties.each do |prop_name, prop_schema|
+        prop_type = sorbet_type(prop_name, prop_schema, depth)
+        prop_type = "T.nilable(#{prop_type})" unless required.include?(prop_name)
+
+        comment = build_comment(prop_schema)
+        lines << "  #{comment}" if comment
+        lines << "  const :#{prop_name}, #{prop_type}"
+      end
+
+      lines << 'end'
+      lines.join("\n")
+    end
+
+    sig do
+      params(
+        prop_name: T.any(Symbol, String),
+        prop_schema: T::Hash[T.any(Symbol, String), T.untyped],
+        depth: Integer
+      ).returns(String)
+    end
+    def sorbet_type(prop_name, prop_schema, depth) # rubocop:disable Metrics/CyclomaticComplexity
+      type = prop_schema['type'] || prop_schema[:type]
+
+      # Handle union types declared as an array of primitive types, e.g. ["string", "number"].
+      if type.is_a?(Array)
+        non_null = type.reject { |t| t == 'null' }
+        ruby_types =
+          non_null.map { |t| sorbet_type(prop_name, prop_schema.merge('type' => t), depth) }.uniq
+        return "T.any(#{ruby_types.join(', ')})"
+      end
+
+      case type
+      when 'string'
+        if prop_schema.key?('enum')
+          enum_class_name = "#{prop_name.to_s.camelize}Enum"
+
+          unless @generated_classes.include?(enum_class_name)
+            @nested_definitions << generate_enum(enum_class_name, prop_schema['enum'])
+            @generated_classes.add(enum_class_name)
+          end
+
+          enum_class_name
+        elsif prop_schema['format'] == 'date-time'
+          'Time'
+        else
+          'String'
+        end
+      when 'integer'
+        'Integer'
+      when 'number'
+        'Float'
+      when 'boolean'
+        'T::Boolean'
+      when 'null'
+        'NilClass'
+      when 'array'
+        items = prop_schema['items'] || prop_schema[:items] || {}
+
+        if items.is_a?(Array)
+          tuple_types =
+            items.map.with_index do |schema, idx|
+              sorbet_type("#{prop_name.to_s.singularize}_#{idx}", schema, depth + 1)
+            end
+          "T.tuple(#{tuple_types.join(', ')})"
+        else
+          "T::Array[#{sorbet_type(prop_name.to_s.singularize, items, depth + 1)}]"
+        end
+      when 'object'
+        nested_class_name = prop_name.to_s.camelize
+
+        # Only generate a new struct if we haven't processed this class name already.
+        unless @generated_classes.include?(nested_class_name)
+          definition = generate_struct(prop_schema, nested_class_name, depth + 1)
+          if depth + 1 > 1
+            @nested_definitions.unshift(definition)
+          else
+            @nested_definitions << definition
+          end
+          @generated_classes.add(nested_class_name)
+        end
+
+        nested_class_name
+      else
+        'T.untyped'
+      end
+    end
+
+    sig { params(class_name: String, values: T::Array[T.untyped]).returns(String) }
+    def generate_enum(class_name, values)
+      lines = []
+      lines << "class #{class_name} < T::Enum"
+      lines << '  enums do'
+      values.each do |val|
+        const_name = val.to_s.gsub(/[^A-Za-z0-9]+/, '_').camelize
+        lines << "    #{const_name} = new('#{val}')"
+      end
+      lines << '  end'
+      lines << 'end'
+      lines.join("\n")
+    end
+
+    # Builds a single-line comment containing JSON-Schema constraints that cannot be
+    # captured by Sorbet types. Returns +nil+ if no relevant constraints are present.
+    sig { params(prop_schema: T::Hash[T.untyped, T.untyped]).returns(T.nilable(String)) }
+    def build_comment(prop_schema)
+      keys_in_order = %w[
+        minLength
+        maxLength
+        exclusiveMinimum
+        exclusiveMaximum
+        minItems
+        maxItems
+        format
+        const
+        default
+      ]
+      entries =
+        keys_in_order.filter_map do |k|
+          next unless prop_schema.key?(k)
+
+          val = prop_schema[k]
+          formatted_val =
+            if val.is_a?(String) && %w[const default].include?(k)
+              "\"#{val}\""
+            else
+              val
+            end
+          "#{k}: #{formatted_val}"
+        end
+
+      return nil if entries.empty?
+
+      "# #{entries.join(', ')}"
+    end
+  end
+end
