@@ -33,16 +33,16 @@ RSpec.describe Ai::Clients::Mastra do
 
     it 'generates text using the Mastra API' do
       telemetry_settings =
-        Ai::TelemetrySettings.new(
-          is_enabled: true,
-          record_inputs: true,
-          record_outputs: true,
-          function_id: 'mastra-text-generation',
-          metadata: {
-            'agent.name' => 'marvin',
-            'service.version' => '1.0.0'
-          }
-        )
+              Ai::TelemetrySettings.new(
+        enabled: true,
+        record_inputs: true,
+        record_outputs: true,
+        function_id: 'mastra-text-generation',
+        metadata: {
+          'agent.name' => 'marvin',
+          'service.version' => '1.0.0'
+        }
+      )
 
       VCR.use_cassette('mastra_generate_agent_text') do
         result =
@@ -62,16 +62,16 @@ RSpec.describe Ai::Clients::Mastra do
 
     it 'generates structured object using the Mastra API' do
       telemetry_settings =
-        Ai::TelemetrySettings.new(
-          is_enabled: true,
-          record_inputs: false,
-          record_outputs: true,
-          function_id: 'mastra-object-generation',
-          metadata: {
-            'agent.name' => 'marvin',
-            'output.type' => 'Person'
-          }
-        )
+              Ai::TelemetrySettings.new(
+        enabled: true,
+        record_inputs: false,
+        record_outputs: true,
+        function_id: 'mastra-object-generation',
+        metadata: {
+          'agent.name' => 'marvin',
+          'output.type' => 'Person'
+        }
+      )
 
       VCR.use_cassette('mastra_generate_agent_object') do
         result =
@@ -93,7 +93,7 @@ RSpec.describe Ai::Clients::Mastra do
 
     it 'converts struct fields to camelCase' do
       telemetry_settings = Ai::TelemetrySettings.new(
-        is_enabled: false,
+        enabled: false,
         record_inputs: true,
         function_id: 'test'
       )

@@ -52,7 +52,7 @@ RSpec.describe Ai::Agent do
 
     it 'passes telemetry settings to client' do
       telemetry_settings = Ai::TelemetrySettings.new(
-        is_enabled: true,
+        enabled: true,
         record_inputs: true,
         record_outputs: true,
         function_id: 'test-function',
@@ -160,7 +160,7 @@ RSpec.describe Ai::Agent do
 
     it 'passes telemetry settings for object generation' do
       telemetry_settings = Ai::TelemetrySettings.new(
-        is_enabled: true,
+        enabled: true,
         record_inputs: false,
         record_outputs: true,
         function_id: 'object-generation',

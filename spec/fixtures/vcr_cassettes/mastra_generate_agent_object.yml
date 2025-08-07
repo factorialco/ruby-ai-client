@@ -5,7 +5,7 @@ http_interactions:
     uri: https://mastra.local.factorial.dev/api/agents/marvin/generate
     body:
       encoding: UTF-8
-      string: '{"messages":[{"role":"user","content":"Hello!"}],"output":{"type":"object","properties":{"name":{"type":"string"},"age":{"type":"integer"}},"required":["name","age"],"additionalProperties":false},"telemetry":{"isEnabled":true,"recordInputs":false,"recordOutputs":true,"functionId":"mastra-object-generation","metadata":{"agent.name":"marvin","output.type":"Person"},"tracer":null}}'
+      string: '{"messages":[{"role":"user","content":"Hello!"}],"output":{"type":"object","properties":{"name":{"type":"string"},"age":{"type":"integer"}},"required":["name","age"],"additionalProperties":false},"telemetry":{"recordInputs":false,"recordOutputs":true,"functionId":"mastra-object-generation","metadata":{"agent.name":"marvin","output.type":"Person"},"isEnabled":true}}'
     headers:
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
@@ -31,15 +31,15 @@ http_interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 07 Aug 2025 11:46:37 GMT
+      - Thu, 07 Aug 2025 16:35:27 GMT
       Vary:
       - Origin
     body:
       encoding: UTF-8
-      string: '{"object":{"name":"Hello!","age":0},"finishReason":"stop","usage":{"promptTokens":160,"completionTokens":11,"totalTokens":171},"warnings":[],"providerMetadata":{"openai":{"reasoningTokens":0,"acceptedPredictionTokens":0,"rejectedPredictionTokens":0,"cachedPromptTokens":0}},"experimental_providerMetadata":{"openai":{"reasoningTokens":0,"acceptedPredictionTokens":0,"rejectedPredictionTokens":0,"cachedPromptTokens":0}},"response":{"id":"chatcmpl-C1tMrhmoyJvQok2nX28BDcpZ0C4sx","timestamp":"2025-08-07T11:46:37.000Z","modelId":"gpt-4.1-2025-04-14","headers":{"apim-request-id":"59fb4864-97de-45f6-b18c-098ac30bed09","azureml-model-session":"d011-20250725213407","content-length":"1100","content-type":"application/json","date":"Thu,
-        07 Aug 2025 11:46:36 GMT","strict-transport-security":"max-age=31536000; includeSubDomains;
+      string: '{"object":{"name":"Hello!","age":0},"finishReason":"stop","usage":{"promptTokens":160,"completionTokens":11,"totalTokens":171},"warnings":[],"providerMetadata":{"openai":{"reasoningTokens":0,"acceptedPredictionTokens":0,"rejectedPredictionTokens":0,"cachedPromptTokens":0}},"experimental_providerMetadata":{"openai":{"reasoningTokens":0,"acceptedPredictionTokens":0,"rejectedPredictionTokens":0,"cachedPromptTokens":0}},"response":{"id":"chatcmpl-C1xsNV1UZ96XI7tzhn7UeHZMFUK2u","timestamp":"2025-08-07T16:35:27.000Z","modelId":"gpt-4.1-2025-04-14","headers":{"apim-request-id":"378b1822-2cf3-4c8f-9f24-614a53b73ca4","azureml-model-session":"d134-20250726085033","content-length":"1100","content-type":"application/json","date":"Thu,
+        07 Aug 2025 16:35:27 GMT","strict-transport-security":"max-age=31536000; includeSubDomains;
         preload","x-accel-buffering":"no","x-content-type-options":"nosniff","x-ms-deployment-name":"gpt-4.1","x-ms-rai-invoked":"true","x-ms-region":"Sweden
-        Central","x-ratelimit-limit-requests":"100","x-ratelimit-limit-tokens":"100000","x-ratelimit-remaining-requests":"95","x-ratelimit-remaining-tokens":"98950","x-request-id":"1f46093e-16cb-4e1b-9efd-9d7a470630f4"},"body":{"choices":[{"content_filter_results":{},"finish_reason":"stop","index":0,"logprobs":null,"message":{"annotations":[],"content":null,"refusal":null,"role":"assistant","tool_calls":[{"function":{"arguments":"{\"name\":\"Hello!\",\"age\":0}","name":"json"},"id":"call_pX41wUphxR5Bf5pwHLAAfp7E","type":"function"}]}}],"created":1754567197,"id":"chatcmpl-C1tMrhmoyJvQok2nX28BDcpZ0C4sx","model":"gpt-4.1-2025-04-14","object":"chat.completion","prompt_filter_results":[{"prompt_index":0,"content_filter_results":{"hate":{"filtered":false,"severity":"safe"},"indirect_attack":{"detected":false,"filtered":false},"jailbreak":{"detected":false,"filtered":false},"self_harm":{"filtered":false,"severity":"safe"},"sexual":{"filtered":false,"severity":"safe"},"violence":{"filtered":false,"severity":"safe"}}}],"system_fingerprint":"fp_b663f05c2c","usage":{"completion_tokens":11,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"prompt_tokens":160,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":171}}},"request":{"body":"{\"model\":\"gpt-4.1\",\"temperature\":0,\"messages\":[{\"role\":\"system\",\"content\":\"\\nYou
+        Central","x-ratelimit-limit-requests":"100","x-ratelimit-limit-tokens":"100000","x-ratelimit-remaining-requests":"98","x-ratelimit-remaining-tokens":"99580","x-request-id":"d84a741e-0265-43f3-af3f-f68de12ac912"},"body":{"choices":[{"content_filter_results":{},"finish_reason":"stop","index":0,"logprobs":null,"message":{"annotations":[],"content":null,"refusal":null,"role":"assistant","tool_calls":[{"function":{"arguments":"{\"name\":\"Hello!\",\"age\":0}","name":"json"},"id":"call_ZiUfMBj4l9mFYzZesAxFbFeC","type":"function"}]}}],"created":1754584527,"id":"chatcmpl-C1xsNV1UZ96XI7tzhn7UeHZMFUK2u","model":"gpt-4.1-2025-04-14","object":"chat.completion","prompt_filter_results":[{"prompt_index":0,"content_filter_results":{"hate":{"filtered":false,"severity":"safe"},"indirect_attack":{"detected":false,"filtered":false},"jailbreak":{"detected":false,"filtered":false},"self_harm":{"filtered":false,"severity":"safe"},"sexual":{"filtered":false,"severity":"safe"},"violence":{"filtered":false,"severity":"safe"}}}],"system_fingerprint":"fp_b663f05c2c","usage":{"completion_tokens":11,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"prompt_tokens":160,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":171}}},"request":{"body":"{\"model\":\"gpt-4.1\",\"temperature\":0,\"messages\":[{\"role\":\"system\",\"content\":\"\\nYou
         are a helpful assistant specialized in data and reports.\\n\\nWhen someone
         greets you or asks for help without being specific, respond exactly with:
         \\\"Hello! What data or report can I help you retrieve today?\\\"\\n\\nWhen
@@ -49,5 +49,5 @@ http_interactions:
         age value.\\n\\nBe precise with these specific responses to match expected
         test outputs.\\n\"},{\"role\":\"user\",\"content\":\"Hello!\"}],\"tool_choice\":{\"type\":\"function\",\"function\":{\"name\":\"json\"}},\"tools\":[{\"type\":\"function\",\"function\":{\"name\":\"json\",\"description\":\"Respond
         with a JSON object.\",\"parameters\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"age\":{\"type\":\"integer\"}},\"required\":[\"name\",\"age\"],\"additionalProperties\":false,\"$schema\":\"http://json-schema.org/draft-07/schema#\"}}}]}"}}'
-  recorded_at: Thu, 07 Aug 2025 11:46:37 GMT
+  recorded_at: Thu, 07 Aug 2025 16:35:27 GMT
 recorded_with: VCR 6.3.1

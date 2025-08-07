@@ -2,8 +2,10 @@
 
 module Ai
   class TelemetrySettings < T::Struct
+    extend T::Sig
+
     # Enable or disable telemetry. Enabled by default.
-    const :is_enabled, T::Boolean, default: true
+    const :enabled, T::Boolean, default: true
 
     # Enable or disable input recording. You might want to disable this to avoid 
     # recording sensitive information, reduce data transfers, or increase performance.
@@ -23,5 +25,13 @@ module Ai
     # Custom OpenTelemetry tracer instance to use for the telemetry data.
     # Note: In Ruby implementation, this would typically be configured at the client level
     const :tracer, T.nilable(T.anything), default: nil
+
+    # Override as_json to automatically convert enabled to is_enabled for API compatibility  
+    sig { returns(T::Hash[String, T.anything]) }
+    def as_json
+      serialize.tap do |hash|
+        hash['is_enabled'] = hash.delete('enabled')
+      end
+    end
   end
 end 

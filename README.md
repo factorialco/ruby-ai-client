@@ -140,9 +140,9 @@ puts result.text  # Generated text response
 The gem supports OpenTelemetry integration for monitoring and observability. You can configure telemetry settings to control what data is recorded and add metadata for better tracing:
 
 **Telemetry Options:**
-- `is_enabled`: Enable/disable telemetry (default: false)
-- `record_inputs`: Record input messages (default: true, disable for sensitive data)
-- `record_outputs`: Record output responses (default: true, disable for sensitive data)
+- `enabled`: Enable/disable telemetry (default: true)
+- `record_inputs`: Record input messages (default: false, disable for sensitive data)
+- `record_outputs`: Record output responses (default: false, disable for sensitive data)
 - `function_id`: Identifier for grouping telemetry data by function
 - `metadata`: Additional metadata for OpenTelemetry traces (agent identification, service info, etc.)
 
@@ -150,7 +150,7 @@ The gem supports OpenTelemetry integration for monitoring and observability. You
 ```ruby
 # Create telemetry settings
 telemetry_settings = Ai::TelemetrySettings.new(
-  is_enabled: true,
+  enabled: true,
   record_inputs: false,      # Disable for sensitive data
   record_outputs: true,      # Enable for monitoring
   function_id: 'user-chat-session',
