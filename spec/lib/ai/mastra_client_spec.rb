@@ -97,18 +97,27 @@ RSpec.describe Ai::Clients::Mastra do
         record_inputs: true,
         function_id: 'test'
       )
-      
-      VCR.use_cassette('mastra_ensure_camel_case') do
-        client.generate('marvin', messages: [Ai.user_message('test')], options: { telemetry: telemetry_settings })
-
-        expect(WebMock).to(
-          have_requested(:post, "https://mastra.local.factorial.dev/api/agents/marvin/generate").with do |req|
-            body = JSON.parse(req.body)
-            expect(body['telemetry']).to include('isEnabled' => false, 'recordInputs' => true, 'functionId' => 'test')
-            expect(body['telemetry']).not_to have_key('is_enabled')
-          end
+    
+      stub = stub_request(:post, "https://mastra.local.factorial.dev/api/agents/marvin/generate")
+        .with do |req|
+          body = JSON.parse(req.body)
+          body['telemetry'] &&
+            body['telemetry']['isEnabled'] == false &&
+            body['telemetry']['recordInputs'] == true &&
+            body['telemetry']['functionId'] == 'test' &&
+            !body['telemetry'].key?('is_enabled') &&
+            !body['telemetry'].key?('record_inputs') &&
+            !body['telemetry'].key?('function_id')
+        end
+        .to_return(
+          status: 200,
+          body: { text: 'Test response' }.to_json,
+          headers: { 'Content-Type' => 'application/json' }
         )
-      end
+    
+      client.generate('marvin', messages: [Ai.user_message('test')], options: { telemetry: telemetry_settings })
+    
+      expect(stub).to have_been_requested
     end
   end
 
