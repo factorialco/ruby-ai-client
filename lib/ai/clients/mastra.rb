@@ -121,6 +121,12 @@ module Ai
 
       private
 
+      sig { params(options: T::Hash[Symbol, T.anything]).returns(T::Hash[Symbol, T.anything]) }
+      def deep_camelize_keys(options)
+        json_options = JSON.parse(options.to_json)
+        json_options.deep_transform_keys { |key| key.to_s.camelize(:lower).to_sym }
+      end
+
       sig do
         params(
           url: URI::Generic,
@@ -160,7 +166,7 @@ module Ai
         request['Origin'] = Ai.config.origin
 
         # convert to camelCase and unpacking for API compatibility
-        camelized_options = options.deep_transform_keys { |key| key.to_s.camelize(:lower).to_sym }
+        camelized_options = deep_camelize_keys(options)
         request.body = { messages: messages, **camelized_options }.to_json
 
         response = http.request(request)
