@@ -90,6 +90,26 @@ RSpec.describe Ai::Clients::Mastra do
         expect(result.dig('object', 'age')).to eq(0)
       end
     end
+
+    it 'converts struct fields to camelCase' do
+      telemetry_settings = Ai::TelemetrySettings.new(
+        is_enabled: false,
+        record_inputs: true,
+        function_id: 'test'
+      )
+      
+      VCR.use_cassette('mastra_ensure_camel_case') do
+        client.generate('marvin', messages: [Ai.user_message('test')], options: { telemetry: telemetry_settings })
+
+        expect(WebMock).to(
+          have_requested(:post, "https://mastra.local.factorial.dev/api/agents/marvin/generate").with do |req|
+            body = JSON.parse(req.body)
+            expect(body['telemetry']).to include('isEnabled' => false, 'recordInputs' => true, 'functionId' => 'test')
+            expect(body['telemetry']).not_to have_key('is_enabled')
+          end
+        )
+      end
+    end
   end
 
   describe '#run_workflow' do
