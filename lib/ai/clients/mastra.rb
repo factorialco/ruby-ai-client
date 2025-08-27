@@ -23,8 +23,20 @@ module Ai
       sig { override.returns(T::Array[String]) }
       def agent_names
         url = URI.join(@endpoint, 'api/agents')
-        response = Net::HTTP.get(url)
-        JSON.parse(response).keys
+
+        http = Net::HTTP.new(url.host, url.port)
+        http.use_ssl = (url.scheme == 'https')
+
+        request = Net::HTTP::Get.new(url)
+        request['Origin'] = Ai.config.origin
+        request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
+
+        response = http.request(request)
+        unless response.is_a?(Net::HTTPSuccess)
+          raise Ai::Error, "Mastra error – could not fetch agents: #{response.body}"
+        end
+
+        JSON.parse(response.body).keys
       end
 
       sig do
@@ -82,6 +94,10 @@ module Ai
         result_http.use_ssl = (result_url.scheme == 'https')
         result_request = Net::HTTP::Get.new(result_url)
         result_request['Origin'] = Ai.config.origin
+        result_request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai
+          .config
+          .api_key
+          .present?
         result_response = result_http.request(result_request)
 
         unless result_response.is_a?(Net::HTTPSuccess)
@@ -105,6 +121,7 @@ module Ai
 
         request = Net::HTTP::Get.new(url)
         request['Origin'] = Ai.config.origin
+        request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
 
         response = http.request(request)
 
@@ -141,6 +158,7 @@ module Ai
         request = Net::HTTP::Post.new(url)
         request['Content-Type'] = 'application/json'
         request['Origin'] = Ai.config.origin
+        request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
         request.body = body if body
 
         if stream && blk
@@ -164,6 +182,7 @@ module Ai
         request = Net::HTTP::Post.new(url)
         request['Content-Type'] = 'text/plain;charset=UTF-8'
         request['Origin'] = Ai.config.origin
+        request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
 
         # convert to camelCase and unpacking for API compatibility
         camelized_options = deep_camelize_keys(options)

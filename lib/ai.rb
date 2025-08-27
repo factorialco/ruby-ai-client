@@ -44,7 +44,7 @@ module Ai
   LogProbs = T.type_alias { T.anything }
   ProviderMetadata = T.type_alias { T.anything }
 
-  config_accessor :origin, :client
+  config_accessor :origin, :client, :api_key
 
   sig { params(content: String).returns(Ai::Message) }
   def self.user_message(content)
@@ -61,6 +61,7 @@ module Ai
     @client ||=
       T.let(
         begin
+          Ai.config.api_key = ENV['MASTRA_API_KEY'] if ENV['MASTRA_API_KEY'].present?
           if ENV['MASTRA_LOCATION'].present?
             Ai::Clients::Mastra.new(ENV.fetch('MASTRA_LOCATION'))
           else
