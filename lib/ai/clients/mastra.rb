@@ -18,13 +18,24 @@ module Ai
         end
 
         @endpoint = endpoint
+        @base_uri = T.let(URI.parse(@endpoint), URI::Generic)
+        @http = T.let(Net::HTTP.new(@base_uri.host, @base_uri.port), Net::HTTP)
+        @http.use_ssl = (@base_uri.scheme == 'https')
       end
 
       sig { override.returns(T::Array[String]) }
       def agent_names
-        url = URI.join(@endpoint, 'api/agents')
-        response = Net::HTTP.get(url)
-        JSON.parse(response).keys
+        url = URI.join(@base_uri, 'api/agents')
+        request = Net::HTTP::Get.new(url)
+        request['Origin'] = Ai.config.origin
+        request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
+
+        response = @http.request(request)
+        unless response.is_a?(Net::HTTPSuccess)
+          raise Ai::Error, "Mastra error – could not fetch agents: #{response.body}"
+        end
+
+        JSON.parse(response.body).keys
       end
 
       sig do
@@ -37,8 +48,7 @@ module Ai
           .returns(T::Hash[String, T.anything])
       end
       def generate(agent_name, messages:, options: {})
-        url = URI.join(@endpoint, "api/agents/#{agent_name}/generate")
-
+        url = URI.join(@base_uri, "api/agents/#{agent_name}/generate")
         generated_response = response(url: url, messages: messages, options: options)
 
         JSON.parse(generated_response.body).deep_transform_keys(&:underscore)
@@ -54,7 +64,7 @@ module Ai
 
         # Step 1: Create a new run for the workflow
         create_url =
-          URI.join(@endpoint, "api/workflows/#{workflow_name}/create-run?runId=#{run_id}")
+          URI.join(@base_uri, "api/workflows/#{workflow_name}/create-run?runId=#{run_id}")
         create_response = http_post(create_url)
 
         unless create_response.is_a?(Net::HTTPSuccess)
@@ -62,7 +72,7 @@ module Ai
         end
 
         # Step 2: Stream the workflow – we only need to consume the stream so that we know when it finishes
-        stream_url = URI.join(@endpoint, "api/workflows/#{workflow_name}/stream?runId=#{run_id}")
+        stream_url = URI.join(@base_uri, "api/workflows/#{workflow_name}/stream?runId=#{run_id}")
         stream_request_body = { inputData: JSON.parse(input.to_json), runtimeContext: {} }.to_json
         stream_response =
           http_post(stream_url, body: stream_request_body, stream: true) do |response|
@@ -77,12 +87,14 @@ module Ai
 
         # Step 3: Fetch the execution result once the stream completes
         result_url =
-          URI.join(@endpoint, "api/workflows/#{workflow_name}/runs/#{run_id}/execution-result")
-        result_http = Net::HTTP.new(result_url.host, result_url.port)
-        result_http.use_ssl = (result_url.scheme == 'https')
+          URI.join(@base_uri, "api/workflows/#{workflow_name}/runs/#{run_id}/execution-result")
         result_request = Net::HTTP::Get.new(result_url)
         result_request['Origin'] = Ai.config.origin
-        result_response = result_http.request(result_request)
+        result_request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai
+          .config
+          .api_key
+          .present?
+        result_response = @http.request(result_request)
 
         unless result_response.is_a?(Net::HTTPSuccess)
           raise Ai::Error,
@@ -98,15 +110,13 @@ module Ai
 
       sig { override.params(workflow_name: String).returns(T::Hash[String, T.untyped]) }
       def workflow(workflow_name)
-        url = URI.join(@endpoint, "api/workflows/#{workflow_name}")
-
-        http = Net::HTTP.new(url.host, url.port)
-        http.use_ssl = (url.scheme == 'https')
+        url = URI.join(@base_uri, "api/workflows/#{workflow_name}")
 
         request = Net::HTTP::Get.new(url)
         request['Origin'] = Ai.config.origin
+        request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
 
-        response = http.request(request)
+        response = @http.request(request)
 
         unless response.is_a?(Net::HTTPSuccess)
           raise Ai::Error, "Mastra error – could not fetch workflow: #{response.body}"
@@ -136,17 +146,16 @@ module Ai
         ).returns(Net::HTTPResponse)
       end
       def http_post(url, body: nil, stream: false, &blk)
-        http = Net::HTTP.new(url.host, url.port)
-        http.use_ssl = (url.scheme == 'https')
         request = Net::HTTP::Post.new(url)
         request['Content-Type'] = 'application/json'
         request['Origin'] = Ai.config.origin
+        request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
         request.body = body if body
 
         if stream && blk
-          http.request(request, &blk)
+          @http.request(request, &blk)
         else
-          http.request(request)
+          @http.request(request)
         end
       end
 
@@ -158,18 +167,16 @@ module Ai
         ).returns(Net::HTTPResponse)
       end
       def response(url:, messages:, options:)
-        http = Net::HTTP.new(url.host, url.port)
-        http.use_ssl = (url.scheme == 'https')
-
         request = Net::HTTP::Post.new(url)
         request['Content-Type'] = 'text/plain;charset=UTF-8'
         request['Origin'] = Ai.config.origin
+        request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
 
         # convert to camelCase and unpacking for API compatibility
         camelized_options = deep_camelize_keys(options)
         request.body = { messages: messages, **camelized_options }.to_json
 
-        response = http.request(request)
+        response = @http.request(request)
 
         unless response.is_a?(Net::HTTPSuccess)
           error =
