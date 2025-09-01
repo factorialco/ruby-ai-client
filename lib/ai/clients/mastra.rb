@@ -19,8 +19,6 @@ module Ai
 
         @endpoint = endpoint
         @base_uri = T.let(URI.parse(@endpoint), URI::Generic)
-        @http = T.let(Net::HTTP.new(@base_uri.host, @base_uri.port), Net::HTTP)
-        @http.use_ssl = (@base_uri.scheme == 'https')
       end
 
       sig { override.returns(T::Array[String]) }
@@ -30,7 +28,7 @@ module Ai
         request['Origin'] = Ai.config.origin
         request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
 
-        response = @http.request(request)
+        response = http.request(request)
         unless response.is_a?(Net::HTTPSuccess)
           raise Ai::Error, "Mastra error – could not fetch agents: #{response.body}"
         end
@@ -94,7 +92,7 @@ module Ai
           .config
           .api_key
           .present?
-        result_response = @http.request(result_request)
+        result_response = http.request(result_request)
 
         unless result_response.is_a?(Net::HTTPSuccess)
           raise Ai::Error,
@@ -116,7 +114,7 @@ module Ai
         request['Origin'] = Ai.config.origin
         request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
 
-        response = @http.request(request)
+        response = http.request(request)
 
         unless response.is_a?(Net::HTTPSuccess)
           raise Ai::Error, "Mastra error – could not fetch workflow: #{response.body}"
@@ -130,6 +128,12 @@ module Ai
       end
 
       private
+
+      sig { returns(Net::HTTP) }
+      def http
+        @http ||= T.let(Net::HTTP.new(@base_uri.host, @base_uri.port), T.nilable(Net::HTTP))
+        @http.use_ssl = (@base_uri.scheme == 'https')
+      end
 
       sig { params(options: T::Hash[Symbol, T.anything]).returns(T::Hash[Symbol, T.anything]) }
       def deep_camelize_keys(options)
@@ -153,9 +157,9 @@ module Ai
         request.body = body if body
 
         if stream && blk
-          @http.request(request, &blk)
+          http.request(request, &blk)
         else
-          @http.request(request)
+          http.request(request)
         end
       end
 
@@ -176,7 +180,7 @@ module Ai
         camelized_options = deep_camelize_keys(options)
         request.body = { messages: messages, **camelized_options }.to_json
 
-        response = @http.request(request)
+        response = http.request(request)
 
         unless response.is_a?(Net::HTTPSuccess)
           error =
