@@ -133,6 +133,7 @@ module Ai
       def http
         @http ||= T.let(Net::HTTP.new(@base_uri.host, @base_uri.port), T.nilable(Net::HTTP))
         @http.use_ssl = (@base_uri.scheme == 'https')
+        @http
       end
 
       sig { params(options: T::Hash[Symbol, T.anything]).returns(T::Hash[Symbol, T.anything]) }
