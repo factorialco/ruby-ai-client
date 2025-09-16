@@ -17,8 +17,10 @@ module Ai
                 'Mastra endpoint is not set. Please set the MASTRA_LOCATION environment variable or configure the client in the Ai.config object.'
         end
 
-        @endpoint = endpoint
+        @endpoint = T.let(endpoint, String)
         @base_uri = T.let(URI.parse(@endpoint), URI::Generic)
+      rescue URI::InvalidURIError => e
+        raise Ai::Error, "Invalid Mastra endpoint URI '#{endpoint}': #{e.message}"
       end
 
       sig { override.returns(T::Array[String]) }
@@ -34,6 +36,22 @@ module Ai
         end
 
         JSON.parse(response.body).keys
+      rescue Errno::ECONNREFUSED
+        raise Ai::Error, "Connection refused when connecting to Mastra service at #{@endpoint}"
+      rescue Errno::EHOSTUNREACH
+        raise Ai::Error, "Host unreachable when connecting to Mastra service at #{@endpoint}"
+      rescue Errno::ENETUNREACH
+        raise Ai::Error, "Network unreachable when connecting to Mastra service at #{@endpoint}"
+      rescue Errno::ETIMEDOUT
+        raise Ai::Error, "Connection timed out when connecting to Mastra service at #{@endpoint}"
+      rescue SocketError
+        raise Ai::Error, "Could not resolve endpoint: #{url}"
+      rescue Timeout::Error
+        raise Ai::Error, 'Timeout while connecting to Mastra service'
+      rescue JSON::ParserError => e
+        raise Ai::Error, "Invalid JSON response from Mastra service: #{e.message}"
+      rescue URI::InvalidURIError => e
+        raise Ai::Error, "Invalid URI: #{e.message}"
       end
 
       sig do
@@ -100,10 +118,22 @@ module Ai
         end
 
         JSON.parse(result_response.body)['result']
+      rescue Errno::ECONNREFUSED
+        raise Ai::Error, "Connection refused when connecting to Mastra service at #{@endpoint}"
+      rescue Errno::EHOSTUNREACH
+        raise Ai::Error, "Host unreachable when connecting to Mastra service at #{@endpoint}"
+      rescue Errno::ENETUNREACH
+        raise Ai::Error, "Network unreachable when connecting to Mastra service at #{@endpoint}"
+      rescue Errno::ETIMEDOUT
+        raise Ai::Error, "Connection timed out when connecting to Mastra service at #{@endpoint}"
       rescue SocketError
         raise Ai::Error, "Could not resolve endpoint: #{create_url}"
       rescue Timeout::Error
         raise Ai::Error, 'Timeout while connecting to Mastra service'
+      rescue JSON::ParserError => e
+        raise Ai::Error, "Invalid JSON response from Mastra service: #{e.message}"
+      rescue URI::InvalidURIError => e
+        raise Ai::Error, "Invalid URI: #{e.message}"
       end
 
       sig { override.params(workflow_name: String).returns(T::Hash[String, T.untyped]) }
@@ -121,10 +151,22 @@ module Ai
         end
 
         JSON.parse(response.body).deep_transform_keys(&:underscore)
+      rescue Errno::ECONNREFUSED
+        raise Ai::Error, "Connection refused when connecting to Mastra service at #{@endpoint}"
+      rescue Errno::EHOSTUNREACH
+        raise Ai::Error, "Host unreachable when connecting to Mastra service at #{@endpoint}"
+      rescue Errno::ENETUNREACH
+        raise Ai::Error, "Network unreachable when connecting to Mastra service at #{@endpoint}"
+      rescue Errno::ETIMEDOUT
+        raise Ai::Error, "Connection timed out when connecting to Mastra service at #{@endpoint}"
       rescue SocketError
         raise Ai::Error, "Could not resolve endpoint: #{url}"
       rescue Timeout::Error
         raise Ai::Error, 'Timeout while connecting to Mastra service'
+      rescue JSON::ParserError => e
+        raise Ai::Error, "Invalid JSON response from Mastra service: #{e.message}"
+      rescue URI::InvalidURIError => e
+        raise Ai::Error, "Invalid URI: #{e.message}"
       end
 
       private
@@ -162,6 +204,20 @@ module Ai
         else
           http.request(request)
         end
+      rescue Errno::ECONNREFUSED
+        raise Ai::Error, "Connection refused when connecting to Mastra service at #{@endpoint}"
+      rescue Errno::EHOSTUNREACH
+        raise Ai::Error, "Host unreachable when connecting to Mastra service at #{@endpoint}"
+      rescue Errno::ENETUNREACH
+        raise Ai::Error, "Network unreachable when connecting to Mastra service at #{@endpoint}"
+      rescue Errno::ETIMEDOUT
+        raise Ai::Error, "Connection timed out when connecting to Mastra service at #{@endpoint}"
+      rescue SocketError
+        raise Ai::Error, "Could not resolve endpoint: #{url}"
+      rescue Timeout::Error
+        raise Ai::Error, 'Timeout while connecting to Mastra service'
+      rescue URI::InvalidURIError => e
+        raise Ai::Error, "Invalid URI: #{e.message}"
       end
 
       sig do
@@ -195,10 +251,20 @@ module Ai
         end
 
         response
-      rescue Socket::ResolutionError
+      rescue Errno::ECONNREFUSED
+        raise Ai::Error, "Connection refused when connecting to Mastra service at #{@endpoint}"
+      rescue Errno::EHOSTUNREACH
+        raise Ai::Error, "Host unreachable when connecting to Mastra service at #{@endpoint}"
+      rescue Errno::ENETUNREACH
+        raise Ai::Error, "Network unreachable when connecting to Mastra service at #{@endpoint}"
+      rescue Errno::ETIMEDOUT
+        raise Ai::Error, "Connection timed out when connecting to Mastra service at #{@endpoint}"
+      rescue SocketError
         raise Ai::Error, "Could not resolve endpoint: #{url}"
       rescue Timeout::Error
         raise Ai::Error, "Timeout while connecting to #{url}"
+      rescue URI::InvalidURIError => e
+        raise Ai::Error, "Invalid URI: #{e.message}"
       end
     end
   end
