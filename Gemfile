@@ -24,7 +24,7 @@ group :development, :test do
   gem 'byebug'
   gem 'vcr', '~> 6.0'
   gem 'webmock', '~> 3.0'
-  gem 'tapioca', '~> 0.16.11', require: false
+  gem 'tapioca', '~> 0.17.7', require: false
   gem 'syntax_tree', '~> 6.2', require: false
   gem 'prettier', '~> 3.2.2'
   gem 'ruby_parser'
