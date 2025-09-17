@@ -35,7 +35,7 @@ module Ai
           raise Ai::Error, "Mastra error – could not fetch agents: #{response.body}"
         end
 
-        JSON.parse(response.body).keys
+        JSON.parse(response.body || '').keys
       rescue Errno::ECONNREFUSED
         raise Ai::Error, "Connection refused when connecting to Mastra service at #{@endpoint}"
       rescue Errno::EHOSTUNREACH
@@ -67,7 +67,7 @@ module Ai
         url = URI.join(@base_uri, "api/agents/#{agent_name}/generate")
         generated_response = response(url: url, messages: messages, options: options)
 
-        JSON.parse(generated_response.body).deep_transform_keys(&:underscore)
+        JSON.parse(generated_response.body || '').deep_transform_keys(&:underscore)
       end
 
       sig do
@@ -117,7 +117,7 @@ module Ai
                 "Mastra error – could not fetch execution result: #{result_response.body}"
         end
 
-        JSON.parse(result_response.body)['result']
+        JSON.parse(result_response.body || '')['result']
       rescue Errno::ECONNREFUSED
         raise Ai::Error, "Connection refused when connecting to Mastra service at #{@endpoint}"
       rescue Errno::EHOSTUNREACH
@@ -150,7 +150,7 @@ module Ai
           raise Ai::Error, "Mastra error – could not fetch workflow: #{response.body}"
         end
 
-        JSON.parse(response.body).deep_transform_keys(&:underscore)
+        JSON.parse(response.body || '').deep_transform_keys(&:underscore)
       rescue Errno::ECONNREFUSED
         raise Ai::Error, "Connection refused when connecting to Mastra service at #{@endpoint}"
       rescue Errno::EHOSTUNREACH
