@@ -23,8 +23,8 @@ module Ai
       @root_class_name = class_name
       @generated_classes = T.let(Set.new, T::Set[String])
       @nested_definitions = T.let([], T::Array[String])
-      @schema_definitions = T.let({}, T::Hash[String, T::Hash[String, T.untyped]])
-      @resolved_refs = T.let({}, T::Hash[String, T::Hash[String, T.untyped]])
+      @schema_definitions = T.let({}, T::Hash[String, T::Hash[String, T.untyped]]) # rubocop:disable Sorbet/ForbidTUntyped
+      @resolved_refs = T.let({}, T::Hash[String, T::Hash[String, T.untyped]]) # rubocop:disable Sorbet/ForbidTUntyped
     end
 
     sig { returns(String) }
@@ -33,14 +33,14 @@ module Ai
       (@nested_definitions + [main_definition]).join("\n\n")
     end
 
-    sig { returns(T::Hash[String, T.untyped]) }
+    sig { returns(T::Hash[String, T.untyped]) } # rubocop:disable Sorbet/ForbidTUntyped
     def parsed_schema
       return @parsed_schema if @parsed_schema
 
-      full_schema = T.let(JSON.parse(@schema), T::Hash[String, T.untyped])
+      full_schema = T.let(JSON.parse(@schema), T::Hash[String, T.untyped]) # rubocop:disable Sorbet/ForbidTUntyped
 
       if full_schema.key?('json')
-        @parsed_schema = T.let(full_schema['json'], T.nilable(T::Hash[String, T.untyped]))
+        @parsed_schema = T.let(full_schema['json'], T.nilable(T::Hash[String, T.untyped])) # rubocop:disable Sorbet/ForbidTUntyped
       elsif full_schema.key?('$defs') || full_schema.key?('definitions')
         @schema_definitions = full_schema['$defs'] || full_schema['definitions'] || {}
         @parsed_schema = full_schema
@@ -53,14 +53,14 @@ module Ai
       raise ArgumentError, "Invalid JSON schema provided: #{e.message}"
     end
 
-    sig { params(schema_hash: T::Hash[String, T.untyped]).returns(T::Hash[String, T.untyped]) }
+    sig { params(schema_hash: T::Hash[String, T.untyped]).returns(T::Hash[String, T.untyped]) } # rubocop:disable Sorbet/ForbidTUntyped
     def resolve_ref(schema_hash)
       ref = schema_hash['$ref']
       return schema_hash unless ref
 
       return @resolved_refs[ref] if @resolved_refs.key?(ref)
 
-      if ref.start_with?('#/$defs/') || ref.start_with?('#/definitions/')
+      if ref.start_with?('#/$defs/', '#/definitions/')
         ref_name = ref.split('/').last
         resolved = @schema_definitions[ref_name]
         if resolved
@@ -70,7 +70,7 @@ module Ai
       elsif ref.start_with?('#/')
         parts = ref.split('/')[1..]
         resolved = parsed_schema
-        parts.each { |part| resolved = resolved[part] if resolved&.is_a?(Hash) }
+        parts.each { |part| resolved = resolved[part] if resolved.is_a?(Hash) }
         if resolved
           @resolved_refs[ref] = resolved
           return resolved
@@ -82,13 +82,13 @@ module Ai
 
     sig do
       params(
-        schema_hash: T::Hash[T.any(Symbol, String), T.untyped],
+        schema_hash: T::Hash[T.any(Symbol, String), T.untyped], # rubocop:disable Sorbet/ForbidTUntyped
         class_name: String,
         depth: Integer
       ).returns(String)
     end
     def generate_struct(schema_hash, class_name, depth = 0)
-      properties = T.let(schema_hash.fetch('properties', {}), T::Hash[String, T.untyped])
+      properties = T.let(schema_hash.fetch('properties', {}), T::Hash[String, T.untyped]) # rubocop:disable Sorbet/ForbidTUntyped
       required = T.let(schema_hash.fetch('required', []), T::Array[String])
 
       lines = []
@@ -112,7 +112,7 @@ module Ai
     sig do
       params(
         prop_name: T.any(Symbol, String),
-        prop_schema: T::Hash[T.any(Symbol, String), T.untyped],
+        prop_schema: T::Hash[T.any(Symbol, String), T.untyped], # rubocop:disable Sorbet/ForbidTUntyped
         depth: Integer
       ).returns(String)
     end
@@ -185,7 +185,7 @@ module Ai
       end
     end
 
-    sig { params(class_name: String, values: T::Array[T.untyped]).returns(String) }
+    sig { params(class_name: String, values: T::Array[String]).returns(String) }
     def generate_enum(class_name, values)
       lines = []
       lines << "class #{class_name} < T::Enum"
@@ -201,7 +201,7 @@ module Ai
 
     # Builds a single-line comment containing JSON-Schema constraints that cannot be
     # captured by Sorbet types. Returns +nil+ if no relevant constraints are present.
-    sig { params(prop_schema: T::Hash[T.untyped, T.untyped]).returns(T.nilable(String)) }
+    sig { params(prop_schema: T::Hash[String, T.untyped]).returns(T.nilable(String)) } # rubocop:disable Sorbet/ForbidTUntyped
     def build_comment(prop_schema)
       keys_in_order = %w[
         minLength
