@@ -53,11 +53,13 @@ module Ai
       raise ArgumentError, "Invalid JSON schema provided: #{e.message}"
     end
 
+    # rubocop:disable Sorbet/ForbidTUntyped
     sig do
       params(schema_hash: T::Hash[T.any(Symbol, String), T.untyped]).returns(
         T::Hash[T.any(Symbol, String), T.untyped]
       )
-    end # rubocop:disable Sorbet/ForbidTUntyped
+    end
+    # rubocop:enable Sorbet/ForbidTUntyped
     def resolve_ref(schema_hash)
       ref = schema_hash['$ref']
       return schema_hash unless ref
@@ -73,7 +75,7 @@ module Ai
         end
       elsif ref.start_with?('#/')
         parts = ref.split('/')[1..]
-        current = T.let(parsed_schema, T.untyped)
+        current = T.let(parsed_schema, T.untyped) # rubocop:disable Sorbet/ForbidTUntyped
         parts.each { |part| current = current[part] if current.is_a?(Hash) }
         resolved = current.is_a?(Hash) ? current : nil
         if resolved
@@ -123,7 +125,7 @@ module Ai
     end
     def sorbet_type(prop_name, prop_schema, depth) # rubocop:disable Metrics/CyclomaticComplexity
       resolved_schema = resolve_ref(prop_schema)
-      type = T.unsafe(resolved_schema['type'] || resolved_schema[:type])
+      type = T.unsafe(resolved_schema['type'] || resolved_schema[:type]) # rubocop:disable Sorbet/ForbidTUnsafe
 
       if type.is_a?(Array)
         non_null = type.reject { |t| t == 'null' }
@@ -168,7 +170,7 @@ module Ai
             end
           "T::Array[T.any(#{tuple_types.join(', ')})]"
         else
-          items = T.cast(raw_items, T::Hash[T.any(Symbol, String), T.untyped])
+          items = T.cast(raw_items, T::Hash[T.any(Symbol, String), T.untyped]) # rubocop:disable Sorbet/ForbidTUntyped
           "T::Array[#{sorbet_type(prop_name.to_s.singularize, items, depth + 1)}]"
         end
       when 'object'
