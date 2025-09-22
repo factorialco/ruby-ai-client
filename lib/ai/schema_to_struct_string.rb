@@ -53,12 +53,16 @@ module Ai
       raise ArgumentError, "Invalid JSON schema provided: #{e.message}"
     end
 
-    sig { params(schema_hash: T::Hash[String, T.untyped]).returns(T::Hash[String, T.untyped]) } # rubocop:disable Sorbet/ForbidTUntyped
+    sig do
+      params(schema_hash: T::Hash[T.any(Symbol, String), T.untyped]).returns(
+        T::Hash[T.any(Symbol, String), T.untyped]
+      )
+    end # rubocop:disable Sorbet/ForbidTUntyped
     def resolve_ref(schema_hash)
       ref = schema_hash['$ref']
       return schema_hash unless ref
 
-      return @resolved_refs[ref] if @resolved_refs.key?(ref)
+      return T.must(@resolved_refs[ref]) if @resolved_refs.key?(ref)
 
       if ref.start_with?('#/$defs/', '#/definitions/')
         ref_name = ref.split('/').last
@@ -69,8 +73,9 @@ module Ai
         end
       elsif ref.start_with?('#/')
         parts = ref.split('/')[1..]
-        resolved = parsed_schema
-        parts.each { |part| resolved = resolved[part] if resolved.is_a?(Hash) }
+        current = T.let(parsed_schema, T.untyped)
+        parts.each { |part| current = current[part] if current.is_a?(Hash) }
+        resolved = current.is_a?(Hash) ? current : nil
         if resolved
           @resolved_refs[ref] = resolved
           return resolved
@@ -118,7 +123,7 @@ module Ai
     end
     def sorbet_type(prop_name, prop_schema, depth) # rubocop:disable Metrics/CyclomaticComplexity
       resolved_schema = resolve_ref(prop_schema)
-      type = resolved_schema['type'] || resolved_schema[:type]
+      type = T.unsafe(resolved_schema['type'] || resolved_schema[:type])
 
       if type.is_a?(Array)
         non_null = type.reject { |t| t == 'null' }
@@ -154,15 +159,16 @@ module Ai
       when 'null'
         'NilClass'
       when 'array'
-        items = resolved_schema['items'] || resolved_schema[:items] || {}
+        raw_items = resolved_schema['items'] || resolved_schema[:items] || {}
 
-        if items.is_a?(Array)
+        if raw_items.is_a?(Array)
           tuple_types =
-            items.map.with_index do |schema, idx|
+            raw_items.map.with_index do |schema, idx|
               sorbet_type("#{prop_name.to_s.singularize}_#{idx}", schema, depth + 1)
             end
           "T::Array[T.any(#{tuple_types.join(', ')})]"
         else
+          items = T.cast(raw_items, T::Hash[T.any(Symbol, String), T.untyped])
           "T::Array[#{sorbet_type(prop_name.to_s.singularize, items, depth + 1)}]"
         end
       when 'object'
