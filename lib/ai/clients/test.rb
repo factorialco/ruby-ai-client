@@ -35,7 +35,7 @@ module Ai
           .returns(T::Hash[String, T.anything])
       end
       def generate(agent_name, messages:, options: {})
-        output = options[:output] || options[:experimental_output] || options[:structured_output]
+        output = options[:output] || options[:experimental_output]
 
         # Use the first message content for testing purposes
         message_content = messages.first&.content || ''

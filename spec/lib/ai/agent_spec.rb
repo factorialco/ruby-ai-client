@@ -51,23 +51,19 @@ RSpec.describe Ai::Agent do
     end
 
     it 'passes telemetry settings to client' do
-      telemetry_settings =
-        Ai::TelemetrySettings.new(
-          enabled: true,
-          record_inputs: true,
-          record_outputs: true,
-          function_id: 'test-function',
-          metadata: {
-            'agent.name' => 'test-agent'
-          }
-        )
+      telemetry_settings = Ai::TelemetrySettings.new(
+        enabled: true,
+        record_inputs: true,
+        record_outputs: true,
+        function_id: 'test-function',
+        metadata: { 'agent.name' => 'test-agent' }
+      )
 
       expect(client).to receive(:generate).with(
         'test',
         messages: anything,
         options: {
-          runtime_context: {
-          },
+          runtime_context: {},
           max_retries: 2,
           max_steps: 5,
           telemetry: telemetry_settings
@@ -82,8 +78,7 @@ RSpec.describe Ai::Agent do
         'test',
         messages: anything,
         options: {
-          runtime_context: {
-          },
+          runtime_context: {},
           max_retries: 2,
           max_steps: 5,
           telemetry: kind_of(Ai::TelemetrySettings)
@@ -149,7 +144,7 @@ RSpec.describe Ai::Agent do
             runtime_context: runtime_context,
             max_retries: 3,
             max_steps: 8,
-            structured_output: hash_including(schema: anything),
+            output: anything,
             telemetry: anything
           )
       ).and_call_original
@@ -164,25 +159,21 @@ RSpec.describe Ai::Agent do
     end
 
     it 'passes telemetry settings for object generation' do
-      telemetry_settings =
-        Ai::TelemetrySettings.new(
-          enabled: true,
-          record_inputs: false,
-          record_outputs: true,
-          function_id: 'object-generation',
-          metadata: {
-            'output.type' => 'Person'
-          }
-        )
+      telemetry_settings = Ai::TelemetrySettings.new(
+        enabled: true,
+        record_inputs: false,
+        record_outputs: true,
+        function_id: 'object-generation',
+        metadata: { 'output.type' => 'Person' }
+      )
 
       expect(client).to receive(:generate).with(
         'test',
         messages: anything,
-        options:
-          hash_including(
-            telemetry: telemetry_settings,
-            structured_output: hash_including(schema: anything)
-          )
+        options: hash_including(
+          telemetry: telemetry_settings,
+          output: anything
+        )
       ).and_call_original
 
       agent.generate_object(
