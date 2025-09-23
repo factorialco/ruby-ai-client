@@ -85,7 +85,6 @@ RSpec.describe Ai::Clients::Mastra do
               telemetry: telemetry_settings
             }
           )
-        puts "Result: #{result}"
         expect(result).to be_a(Hash)
         expect(result).to have_key('object')
         expect(result.dig('object', 'name')).to eq('Hello!')
