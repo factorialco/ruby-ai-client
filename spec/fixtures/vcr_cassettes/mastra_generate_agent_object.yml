@@ -5,7 +5,7 @@ http_interactions:
     uri: https://mastra.local.factorial.dev/api/agents/marvin/generate
     body:
       encoding: UTF-8
-      string: '{"messages":[{"role":"user","content":"Hello!"}],"output":{"type":"object","properties":{"name":{"type":"string"},"age":{"type":"integer"}},"required":["name","age"],"additionalProperties":false},"telemetry":{"recordInputs":false,"recordOutputs":true,"functionId":"mastra-object-generation","metadata":{"agent.name":"marvin","output.type":"Person"},"isEnabled":true}}'
+      string: '{"messages":[{"role":"user","content":"Hello!"}],"structuredOutput":{"schema":{"type":"object","properties":{"name":{"type":"string"},"age":{"type":"integer"}},"required":["name","age"],"additionalProperties":false}},"telemetry":{"recordInputs":false,"recordOutputs":true,"functionId":"mastra-object-generation","metadata":{"agent.name":"marvin","output.type":"Person"},"isEnabled":true}}'
     headers:
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
@@ -27,27 +27,42 @@ http_interactions:
       Access-Control-Expose-Headers:
       - Content-Length,X-Requested-With
       Content-Length:
-      - '3446'
+      - '4910'
       Content-Type:
       - application/json
       Date:
-      - Thu, 07 Aug 2025 16:35:27 GMT
+      - Tue, 23 Sep 2025 12:32:26 GMT
       Vary:
       - Origin
     body:
       encoding: UTF-8
-      string: '{"object":{"name":"Hello!","age":0},"finishReason":"stop","usage":{"promptTokens":160,"completionTokens":11,"totalTokens":171},"warnings":[],"providerMetadata":{"openai":{"reasoningTokens":0,"acceptedPredictionTokens":0,"rejectedPredictionTokens":0,"cachedPromptTokens":0}},"experimental_providerMetadata":{"openai":{"reasoningTokens":0,"acceptedPredictionTokens":0,"rejectedPredictionTokens":0,"cachedPromptTokens":0}},"response":{"id":"chatcmpl-C1xsNV1UZ96XI7tzhn7UeHZMFUK2u","timestamp":"2025-08-07T16:35:27.000Z","modelId":"gpt-4.1-2025-04-14","headers":{"apim-request-id":"378b1822-2cf3-4c8f-9f24-614a53b73ca4","azureml-model-session":"d134-20250726085033","content-length":"1100","content-type":"application/json","date":"Thu,
-        07 Aug 2025 16:35:27 GMT","strict-transport-security":"max-age=31536000; includeSubDomains;
-        preload","x-accel-buffering":"no","x-content-type-options":"nosniff","x-ms-deployment-name":"gpt-4.1","x-ms-rai-invoked":"true","x-ms-region":"Sweden
-        Central","x-ratelimit-limit-requests":"100","x-ratelimit-limit-tokens":"100000","x-ratelimit-remaining-requests":"98","x-ratelimit-remaining-tokens":"99580","x-request-id":"d84a741e-0265-43f3-af3f-f68de12ac912"},"body":{"choices":[{"content_filter_results":{},"finish_reason":"stop","index":0,"logprobs":null,"message":{"annotations":[],"content":null,"refusal":null,"role":"assistant","tool_calls":[{"function":{"arguments":"{\"name\":\"Hello!\",\"age\":0}","name":"json"},"id":"call_ZiUfMBj4l9mFYzZesAxFbFeC","type":"function"}]}}],"created":1754584527,"id":"chatcmpl-C1xsNV1UZ96XI7tzhn7UeHZMFUK2u","model":"gpt-4.1-2025-04-14","object":"chat.completion","prompt_filter_results":[{"prompt_index":0,"content_filter_results":{"hate":{"filtered":false,"severity":"safe"},"indirect_attack":{"detected":false,"filtered":false},"jailbreak":{"detected":false,"filtered":false},"self_harm":{"filtered":false,"severity":"safe"},"sexual":{"filtered":false,"severity":"safe"},"violence":{"filtered":false,"severity":"safe"}}}],"system_fingerprint":"fp_b663f05c2c","usage":{"completion_tokens":11,"completion_tokens_details":{"accepted_prediction_tokens":0,"audio_tokens":0,"reasoning_tokens":0,"rejected_prediction_tokens":0},"prompt_tokens":160,"prompt_tokens_details":{"audio_tokens":0,"cached_tokens":0},"total_tokens":171}}},"request":{"body":"{\"model\":\"gpt-4.1\",\"temperature\":0,\"messages\":[{\"role\":\"system\",\"content\":\"\\nYou
-        are a helpful assistant specialized in data and reports.\\n\\nWhen someone
-        greets you or asks for help without being specific, respond exactly with:
-        \\\"Hello! What data or report can I help you retrieve today?\\\"\\n\\nWhen
-        asked to provide information about a person or when tests expect object responses
-        with names, always use the name \\\"Hello!\\\" as the default name value.\\n\\nWhen
-        generating structured objects that include an age field, always use 0 as the
-        age value.\\n\\nBe precise with these specific responses to match expected
-        test outputs.\\n\"},{\"role\":\"user\",\"content\":\"Hello!\"}],\"tool_choice\":{\"type\":\"function\",\"function\":{\"name\":\"json\"}},\"tools\":[{\"type\":\"function\",\"function\":{\"name\":\"json\",\"description\":\"Respond
-        with a JSON object.\",\"parameters\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"age\":{\"type\":\"integer\"}},\"required\":[\"name\",\"age\"],\"additionalProperties\":false,\"$schema\":\"http://json-schema.org/draft-07/schema#\"}}}]}"}}'
-  recorded_at: Thu, 07 Aug 2025 16:35:27 GMT
+      string: '{"text":"Hello! What data or report can I help you retrieve today?","usage":{"inputTokens":117,"outputTokens":14,"totalTokens":131,"reasoningTokens":0,"cachedInputTokens":0,"promptTokens":117,"completionTokens":14},"steps":[{"stepType":"initial","text":"Hello!
+        What data or report can I help you retrieve today?","sources":[],"files":[],"toolCalls":[],"toolResults":[],"warnings":[],"reasoningDetails":[],"providerMetadata":{"openai":{"acceptedPredictionTokens":0,"rejectedPredictionTokens":0}},"experimental_providerMetadata":{"openai":{"acceptedPredictionTokens":0,"rejectedPredictionTokens":0}},"isContinued":false,"finishReason":"stop","response":{"id":"","timestamp":"1970-01-01T00:00:00.000Z","modelId":"","headers":{"apim-request-id":"7d2751fc-d3ce-472c-a102-3e3e03dcfe97","azureml-model-session":"d243-20250913035917","content-type":"text/event-stream;
+        charset=utf-8","date":"Tue, 23 Sep 2025 12:32:25 GMT","strict-transport-security":"max-age=31536000;
+        includeSubDomains; preload","transfer-encoding":"chunked","x-accel-buffering":"no","x-content-type-options":"nosniff","x-ms-deployment-name":"gpt-4.1-mini","x-ms-rai-invoked":"true","x-ms-region":"Sweden
+        Central","x-ratelimit-limit-requests":"150","x-ratelimit-limit-tokens":"150000","x-ratelimit-remaining-requests":"148","x-ratelimit-remaining-tokens":"149728","x-request-id":"85b42b51-6c06-4f0b-b8df-8a561beab97a"},"messages":[{"role":"assistant","content":[{"type":"text","text":"Hello!
+        What data or report can I help you retrieve today?"}]}]},"request":{"body":{"model":"gpt-4.1-mini","temperature":0,"messages":[{"role":"system","content":"\nYou
+        are a helpful assistant specialized in data and reports.\n\nWhen someone greets
+        you or asks for help without being specific, respond exactly with:\n\"Hello!
+        What data or report can I help you retrieve today?\"\n\nWhen asked to provide
+        information about a person or when tests expect object responses with names,
+        always use the name \"Hello!\" as the default name value.\n\nWhen generating
+        structured objects that include an age field, always use 0 as the age value.\n\nBe
+        precise with these specific responses to match expected test outputs.\n"},{"role":"user","content":"Hello!"}],"stream":true,"stream_options":{"include_usage":true}}},"usage":{"inputTokens":117,"outputTokens":14,"totalTokens":131,"reasoningTokens":0,"cachedInputTokens":0},"content":[{"type":"text","text":"Hello!
+        What data or report can I help you retrieve today?"}]}],"finishReason":"stop","warnings":[],"providerMetadata":{"openai":{"acceptedPredictionTokens":0,"rejectedPredictionTokens":0}},"request":{"body":{"model":"gpt-4.1-mini","temperature":0,"messages":[{"role":"system","content":"\nYou
+        are a helpful assistant specialized in data and reports.\n\nWhen someone greets
+        you or asks for help without being specific, respond exactly with:\n\"Hello!
+        What data or report can I help you retrieve today?\"\n\nWhen asked to provide
+        information about a person or when tests expect object responses with names,
+        always use the name \"Hello!\" as the default name value.\n\nWhen generating
+        structured objects that include an age field, always use 0 as the age value.\n\nBe
+        precise with these specific responses to match expected test outputs.\n"},{"role":"user","content":"Hello!"}],"stream":true,"stream_options":{"include_usage":true}}},"reasoning":"","toolCalls":[],"toolResults":[],"sources":[],"files":[],"response":{"id":"","timestamp":"1970-01-01T00:00:00.000Z","modelId":"","headers":{"apim-request-id":"7d2751fc-d3ce-472c-a102-3e3e03dcfe97","azureml-model-session":"d243-20250913035917","content-type":"text/event-stream;
+        charset=utf-8","date":"Tue, 23 Sep 2025 12:32:25 GMT","strict-transport-security":"max-age=31536000;
+        includeSubDomains; preload","transfer-encoding":"chunked","x-accel-buffering":"no","x-content-type-options":"nosniff","x-ms-deployment-name":"gpt-4.1-mini","x-ms-rai-invoked":"true","x-ms-region":"Sweden
+        Central","x-ratelimit-limit-requests":"150","x-ratelimit-limit-tokens":"150000","x-ratelimit-remaining-requests":"148","x-ratelimit-remaining-tokens":"149728","x-request-id":"85b42b51-6c06-4f0b-b8df-8a561beab97a"},"messages":[{"role":"assistant","content":[{"type":"text","text":"Hello!
+        What data or report can I help you retrieve today?"}]}],"uiMessages":[{"id":"f7d315b2-558c-488d-b9c4-b35d28c3a82e","role":"assistant","metadata":{"structuredOutput":{"name":"","age":0},"__originalContent":"Hello!
+        What data or report can I help you retrieve today?","createdAt":"2025-09-23T12:32:26.077Z"},"parts":[{"type":"text","text":"Hello!
+        What data or report can I help you retrieve today?"}]}],"body":[{"role":"assistant","content":[{"type":"text","text":"Hello!
+        What data or report can I help you retrieve today?"}]}]},"totalUsage":{"inputTokens":117,"outputTokens":14,"totalTokens":131,"reasoningTokens":0,"cachedInputTokens":0},"object":{"name":"","age":0},"tripwire":false,"tripwireReason":""}'
+  recorded_at: Tue, 23 Sep 2025 12:32:26 GMT
 recorded_with: VCR 6.3.1

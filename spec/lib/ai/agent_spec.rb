@@ -12,9 +12,9 @@ RSpec.describe Ai::Agent do
       result = agent.generate_text(messages: [Ai.user_message('Hello, world!')])
       expect(result.text).to eq('Hello, world!')
       expect(result.finish_reason).to eq(:stop)
-      expect(result.usage.prompt_tokens).to eq(0)
-      expect(result.usage.completion_tokens).to eq(0)
-      expect(result.usage.total_tokens).to eq(0)
+      expect(result.total_usage.input_tokens).to eq(8)
+      expect(result.total_usage.output_tokens).to eq(3)
+      expect(result.total_usage.total_tokens).to eq(11)
     end
 
     it 'passes runtime_context to the client' do
@@ -101,7 +101,7 @@ RSpec.describe Ai::Agent do
       expect(result).to respond_to(:files)
       expect(result).to respond_to(:reasoning)
       expect(result).to respond_to(:finish_reason)
-      expect(result).to respond_to(:usage)
+      expect(result).to respond_to(:total_usage)
       expect(result).to respond_to(:steps)
       expect(result).to respond_to(:tool_calls)
       expect(result).to respond_to(:tool_results)
@@ -133,9 +133,11 @@ RSpec.describe Ai::Agent do
       expect(result.object.name).to eq('John Doe')
       expect(result.object.age).to eq(30)
       expect(result.finish_reason).to eq(:stop)
-      expect(result.usage.prompt_tokens).to eq(0)
-      expect(result.usage.completion_tokens).to eq(0)
-      expect(result.usage.total_tokens).to eq(0)
+      expect(result.total_usage.input_tokens).to eq(10)
+      expect(result.total_usage.output_tokens).to eq(5)
+      expect(result.total_usage.total_tokens).to eq(15)
+      expect(result.total_usage.reasoning_tokens).to be_nil
+      expect(result.total_usage.cached_input_tokens).to be_nil
     end
 
     it 'passes runtime_context and options to client' do
@@ -197,7 +199,7 @@ RSpec.describe Ai::Agent do
 
       expect(result).to respond_to(:object)
       expect(result).to respond_to(:finish_reason)
-      expect(result).to respond_to(:usage)
+      expect(result).to respond_to(:total_usage)
       expect(result).to respond_to(:warnings)
       expect(result).to respond_to(:request)
       expect(result).to respond_to(:response)

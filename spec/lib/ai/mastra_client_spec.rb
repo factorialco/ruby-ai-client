@@ -33,16 +33,16 @@ RSpec.describe Ai::Clients::Mastra do
 
     it 'generates text using the Mastra API' do
       telemetry_settings =
-              Ai::TelemetrySettings.new(
-        enabled: true,
-        record_inputs: true,
-        record_outputs: true,
-        function_id: 'mastra-text-generation',
-        metadata: {
-          'agent.name' => 'marvin',
-          'service.version' => '1.0.0'
-        }
-      )
+        Ai::TelemetrySettings.new(
+          enabled: true,
+          record_inputs: true,
+          record_outputs: true,
+          function_id: 'mastra-text-generation',
+          metadata: {
+            'agent.name' => 'marvin',
+            'service.version' => '1.0.0'
+          }
+        )
 
       VCR.use_cassette('mastra_generate_agent_text') do
         result =
@@ -62,16 +62,16 @@ RSpec.describe Ai::Clients::Mastra do
 
     it 'generates structured object using the Mastra API' do
       telemetry_settings =
-              Ai::TelemetrySettings.new(
-        enabled: true,
-        record_inputs: false,
-        record_outputs: true,
-        function_id: 'mastra-object-generation',
-        metadata: {
-          'agent.name' => 'marvin',
-          'output.type' => 'Person'
-        }
-      )
+        Ai::TelemetrySettings.new(
+          enabled: true,
+          record_inputs: false,
+          record_outputs: true,
+          function_id: 'mastra-object-generation',
+          metadata: {
+            'agent.name' => 'marvin',
+            'output.type' => 'Person'
+          }
+        )
 
       VCR.use_cassette('mastra_generate_agent_object') do
         result =
@@ -79,7 +79,9 @@ RSpec.describe Ai::Clients::Mastra do
             'marvin',
             messages: [Ai.user_message('Hello!')],
             options: {
-              output: output_schema,
+              structured_output: {
+                schema: output_schema
+              },
               telemetry: telemetry_settings
             }
           )
@@ -92,31 +94,34 @@ RSpec.describe Ai::Clients::Mastra do
     end
 
     it 'converts struct fields to camelCase' do
-      telemetry_settings = Ai::TelemetrySettings.new(
-        enabled: false,
-        record_inputs: true,
-        function_id: 'test'
+      telemetry_settings =
+        Ai::TelemetrySettings.new(enabled: false, record_inputs: true, function_id: 'test')
+
+      stub =
+        stub_request(:post, 'https://mastra.local.factorial.dev/api/agents/marvin/generate')
+          .with do |req|
+            body = JSON.parse(req.body)
+            body['telemetry'] && body['telemetry']['isEnabled'] == false &&
+              body['telemetry']['recordInputs'] == true &&
+              body['telemetry']['functionId'] == 'test' && !body['telemetry'].key?('is_enabled') &&
+              !body['telemetry'].key?('record_inputs') && !body['telemetry'].key?('function_id')
+          end
+          .to_return(
+            status: 200,
+            body: { text: 'Test response' }.to_json,
+            headers: {
+              'Content-Type' => 'application/json'
+            }
+          )
+
+      client.generate(
+        'marvin',
+        messages: [Ai.user_message('test')],
+        options: {
+          telemetry: telemetry_settings
+        }
       )
-    
-      stub = stub_request(:post, "https://mastra.local.factorial.dev/api/agents/marvin/generate")
-        .with do |req|
-          body = JSON.parse(req.body)
-          body['telemetry'] &&
-            body['telemetry']['isEnabled'] == false &&
-            body['telemetry']['recordInputs'] == true &&
-            body['telemetry']['functionId'] == 'test' &&
-            !body['telemetry'].key?('is_enabled') &&
-            !body['telemetry'].key?('record_inputs') &&
-            !body['telemetry'].key?('function_id')
-        end
-        .to_return(
-          status: 200,
-          body: { text: 'Test response' }.to_json,
-          headers: { 'Content-Type' => 'application/json' }
-        )
-    
-      client.generate('marvin', messages: [Ai.user_message('test')], options: { telemetry: telemetry_settings })
-    
+
       expect(stub).to have_been_requested
     end
   end

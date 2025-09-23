@@ -35,7 +35,7 @@ module Ai
           .returns(T::Hash[String, T.anything])
       end
       def generate(agent_name, messages:, options: {})
-        output = options[:output] || options[:experimental_output] || options[:structured_output]
+        output = options[:structured_output]
 
         # Use the first message content for testing purposes
         message_content = messages.first&.content || ''
@@ -45,10 +45,10 @@ module Ai
           {
             'object' => @returned_object,
             'finish_reason' => 'stop',
-            'usage' => {
-              'prompt_tokens' => 0,
-              'completion_tokens' => 0,
-              'total_tokens' => 0
+            'total_usage' => {
+              'input_tokens' => 10,
+              'output_tokens' => 5,
+              'total_tokens' => 15
             },
             'warnings' => nil,
             'request' => {
@@ -73,14 +73,13 @@ module Ai
             'reasoning' => nil,
             'reasoning_details' => [],
             'sources' => [],
-            'experimental_output' => nil,
             'tool_calls' => [],
             'tool_results' => [],
             'finish_reason' => 'stop',
-            'usage' => {
-              'prompt_tokens' => 0,
-              'completion_tokens' => 0,
-              'total_tokens' => 0
+            'total_usage' => {
+              'input_tokens' => 8,
+              'output_tokens' => 3,
+              'total_tokens' => 11
             },
             'warnings' => nil,
             'steps' => [],
