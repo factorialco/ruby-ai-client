@@ -209,5 +209,152 @@ RSpec.describe Ai::SchemaToStructString do
       expect(result).to include('const :required_field, String')
       expect(result).to include('const :optional_field, T.nilable(String)')
     end
+
+    describe '$ref resolution patterns' do
+      it 'resolves standard JSON Schema #/ references' do
+        ref_schema = {
+          'json' => {
+            'type' => 'object',
+            'properties' => {
+              'user' => {
+                'type' => 'object',
+                'properties' => {
+                  'name' => {
+                    'type' => 'string'
+                  },
+                  'role' => {
+                    'type' => 'string',
+                    'enum' => %w[admin user]
+                  }
+                }
+              },
+              'current_user' => {
+                '$ref' => '#/properties/user'
+              }
+            }
+          }
+        }.to_json
+
+        result = converter.convert(ref_schema, class_name: 'StandardRef')
+
+        expect(result).to include('class RoleEnum < T::Enum')
+        expect(result).to include('Admin = new(\'admin\')')
+        expect(result).to include('User = new(\'user\')')
+        expect(result).not_to include('T.untyped')
+      end
+
+      it 'resolves Zod numeric prefix references like "4/directReports/items"' do
+        ref_schema = {
+          'json' => {
+            'type' => 'object',
+            'properties' => {
+              'directReports' => {
+                'type' => 'array',
+                'items' => {
+                  'type' => 'object',
+                  'properties' => {
+                    'employeeId' => {
+                      'type' => 'string'
+                    },
+                    'name' => {
+                      'type' => 'string'
+                    }
+                  },
+                  'required' => %w[employeeId name]
+                }
+              },
+              'cachedReports' => {
+                'type' => 'array',
+                'items' => {
+                  '$ref' => '4/directReports/items'
+                }
+              }
+            }
+          }
+        }.to_json
+
+        result = converter.convert(ref_schema, class_name: 'ZodNumericRef')
+
+        expect(result).to include('const :employeeId, String')
+        expect(result).to include('const :name, String')
+        expect(result).not_to include('T.untyped')
+      end
+
+      it 'resolves direct property path references' do
+        ref_schema = {
+          'json' => {
+            'type' => 'object',
+            'properties' => {
+              'messageHistory' => {
+                'type' => 'array',
+                'items' => {
+                  'type' => 'object',
+                  'properties' => {
+                    'content' => {
+                      'type' => 'string'
+                    },
+                    'metadata' => {
+                      'type' => 'string'
+                    }
+                  },
+                  'required' => ['content']
+                }
+              },
+              'currentMessage' => {
+                'type' => 'object',
+                'properties' => {
+                  'content' => {
+                    '$ref' => 'messageHistory/items/properties/content'
+                  }
+                },
+                'required' => ['content']
+              }
+            }
+          }
+        }.to_json
+
+        result = converter.convert(ref_schema, class_name: 'DirectPathRef')
+
+        # Should resolve the reference properly (content is required in both places)
+        expect(result).to include('const :content, String')
+        expect(result).not_to include('T.untyped')
+      end
+
+      it 'handles complex nested references' do
+        complex_ref_schema = {
+          'json' => {
+            'type' => 'object',
+            'properties' => {
+              'level1' => {
+                'type' => 'object',
+                'properties' => {
+                  'level2' => {
+                    'type' => 'array',
+                    'items' => {
+                      'type' => 'object',
+                      'properties' => {
+                        'status' => {
+                          'type' => 'string',
+                          'enum' => %w[active inactive pending]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              'reference_field' => {
+                '$ref' => '#/properties/level1/properties/level2/items/properties/status'
+              }
+            }
+          }
+        }.to_json
+
+        result = converter.convert(complex_ref_schema, class_name: 'ComplexRef')
+
+        expect(result).to include('class StatusEnum < T::Enum')
+        expect(result).to include('Active = new(\'active\')')
+        expect(result).not_to include('T.untyped')
+      end
+    end
   end
 end

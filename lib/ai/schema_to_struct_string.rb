@@ -66,25 +66,87 @@ module Ai
 
       return T.must(@resolved_refs[ref]) if @resolved_refs.key?(ref)
 
+      resolved = nil
+
+      # Pattern 1: #/$defs/DefName or #/definitions/DefName
       if ref.start_with?('#/$defs/', '#/definitions/')
         ref_name = ref.split('/').last
         resolved = @schema_definitions[ref_name]
-        if resolved
-          @resolved_refs[ref] = resolved
-          return resolved
-        end
+
+        # Pattern 2: #/path/to/property (standard JSON Schema path)
       elsif ref.start_with?('#/')
         parts = ref.split('/')[1..]
-        current = T.let(parsed_schema, T.untyped) # rubocop:disable Sorbet/ForbidTUntyped
-        parts.each { |part| current = current[part] if current.is_a?(Hash) }
-        resolved = current.is_a?(Hash) ? current : nil
-        if resolved
-          @resolved_refs[ref] = resolved
-          return resolved
+        resolved = navigate_schema_path(parsed_schema, parts)
+
+        # Pattern 3: Relative paths like "4/directReports/items" (Zod internal references)
+      elsif ref.match?(%r{\A\d+/})
+        parts = ref.split('/')
+        # Skip the numeric prefix and navigate from schema root
+        path_parts = parts[1..]
+        resolved = navigate_schema_path(parsed_schema, path_parts)
+
+        # Pattern 4: Direct property paths like "directReports/items"
+      else
+        parts = ref.split('/')
+        resolved = navigate_schema_path(parsed_schema, parts)
+      end
+
+      if resolved
+        @resolved_refs[ref] = T.cast(resolved, T::Hash[String, T.untyped])
+        return resolved
+      end
+
+      # If we can't resolve the reference, return the original schema
+      # This prevents T.untyped fallback in most cases
+      schema_hash
+    end
+
+    # Navigate through schema using path parts, handling arrays and objects
+    sig do
+      params(
+        schema: T.untyped, # rubocop:disable Sorbet/ForbidTUntyped
+        parts: T::Array[String]
+      ).returns(T.nilable(T::Hash[T.any(Symbol, String), T.untyped])) # rubocop:disable Sorbet/ForbidTUntyped
+    end
+    def navigate_schema_path(schema, parts)
+      current = T.let(schema, T.untyped) # rubocop:disable Sorbet/ForbidTUntyped
+
+      parts.each_with_index do |part, _index|
+        return nil if current.nil?
+
+        case current
+        when Hash
+          if current['properties'] && current['properties'][part]
+            # Navigate to a property within an object schema
+            current = current['properties'][part]
+          elsif part == 'items' && current['items']
+            # Navigate to items schema of an array
+            current = current['items']
+          elsif part == 'properties' && current['properties']
+            # Navigate to properties collection of an object
+            current = current['properties']
+          elsif current[part]
+            # Direct property access
+            current = current[part]
+          else
+            # Property not found
+            return nil
+          end
+        when Array
+          # For arrays, if part is numeric, use as index
+          if part.match?(/\A\d+\z/)
+            index_val = part.to_i
+            current = current[index_val] if current.size > index_val
+          else
+            return nil
+          end
+        else
+          return nil
         end
       end
 
-      schema_hash
+      # Return only if we ended up with a hash (valid schema node)
+      current.is_a?(Hash) ? current : nil
     end
 
     sig do
