@@ -12,7 +12,7 @@ module Ai
       sig { params(endpoint: String).void }
       def initialize(endpoint = Ai.config.endpoint)
         @endpoint = endpoint
-        @returned_object = T.let({}, T::Hash[String, T.untyped])
+        @returned_object = T.let({}, Ai::Client::ApiResponse)
       end
 
       sig { override.returns(T::Array[String]) }
@@ -20,7 +20,7 @@ module Ai
         %w[test_agent another_agent custom_agent]
       end
 
-      sig { params(output: T::Hash[String, T.untyped]).void }
+      sig { params(output: Ai::Client::ApiResponse).void }
       def set_returned_object(output) # rubocop:disable Naming/AccessorMethodName
         @returned_object = output
       end
@@ -101,15 +101,13 @@ module Ai
       end
 
       sig do
-        override
-          .params(workflow_name: String, input: T::Struct)
-          .returns(T::Hash[T.untyped, T.untyped])
+        override.params(workflow_name: String, input: T::Struct).returns(Ai::Client::ApiResponse)
       end
       def run_workflow(workflow_name, input:)
         @returned_object
       end
 
-      sig { override.params(workflow_name: String).returns(T::Hash[String, T.untyped]) }
+      sig { override.params(workflow_name: String).returns(Ai::Client::SchemaHash) }
       def workflow(workflow_name)
         minimal_schema_json = {
           json: {

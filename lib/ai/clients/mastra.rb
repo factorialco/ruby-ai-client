@@ -71,9 +71,7 @@ module Ai
       end
 
       sig do
-        override
-          .params(workflow_name: String, input: T::Struct)
-          .returns(T::Hash[T.untyped, T.untyped])
+        override.params(workflow_name: String, input: T::Struct).returns(Ai::Client::ApiResponse)
       end
       def run_workflow(workflow_name, input:)
         run_id = SecureRandom.uuid
@@ -136,7 +134,7 @@ module Ai
         raise Ai::Error, "Invalid URI: #{e.message}"
       end
 
-      sig { override.params(workflow_name: String).returns(T::Hash[String, T.untyped]) }
+      sig { override.params(workflow_name: String).returns(Ai::Client::SchemaHash) }
       def workflow(workflow_name)
         url = URI.join(@base_uri, "api/workflows/#{workflow_name}")
 

@@ -66,25 +66,65 @@ module Ai
 
       return T.must(@resolved_refs[ref]) if @resolved_refs.key?(ref)
 
-      if ref.start_with?('#/$defs/', '#/definitions/')
-        ref_name = ref.split('/').last
-        resolved = @schema_definitions[ref_name]
-        if resolved
-          @resolved_refs[ref] = resolved
-          return resolved
+      resolved =
+        if ref.start_with?('#/$defs/', '#/definitions/')
+          ref_name = ref.split('/').last
+          @schema_definitions[ref_name]
+        elsif ref.start_with?('#/')
+          parts = ref.split('/')[1..]
+          navigate_schema_path(parsed_schema, parts)
+        elsif ref.match?(%r{\A\d+/})
+          parts = ref.split('/')
+          path_parts = parts[1..]
+          navigate_schema_path(parsed_schema, path_parts)
+        else
+          parts = ref.split('/')
+          navigate_schema_path(parsed_schema, parts)
         end
-      elsif ref.start_with?('#/')
-        parts = ref.split('/')[1..]
-        current = T.let(parsed_schema, T.untyped) # rubocop:disable Sorbet/ForbidTUntyped
-        parts.each { |part| current = current[part] if current.is_a?(Hash) }
-        resolved = current.is_a?(Hash) ? current : nil
-        if resolved
-          @resolved_refs[ref] = resolved
-          return resolved
+
+      return schema_hash unless resolved
+
+      @resolved_refs[ref] = T.cast(resolved, T::Hash[String, T.untyped]) # rubocop:disable Sorbet/ForbidTUntyped
+      resolved
+    end
+
+    sig do
+      params(
+        schema: T.untyped, # rubocop:disable Sorbet/ForbidTUntyped
+        parts: T::Array[String]
+      ).returns(T.nilable(T::Hash[T.any(Symbol, String), T.untyped])) # rubocop:disable Sorbet/ForbidTUntyped
+    end
+    def navigate_schema_path(schema, parts)
+      current = T.let(schema, T.untyped) # rubocop:disable Sorbet/ForbidTUntyped
+
+      parts.each_with_index do |part, _index|
+        return nil if current.nil?
+
+        case current
+        when Hash
+          current =
+            if current['properties']&.[](part)
+              current['properties'][part]
+            elsif part == 'items' && current['items']
+              current['items']
+            elsif part == 'properties' && current['properties']
+              current['properties']
+            elsif current[part]
+              current[part]
+            else
+              return nil
+            end
+        when Array
+          return nil unless part.match?(/\A\d+\z/)
+
+          index_val = part.to_i
+          current = current[index_val] if current.size > index_val
+        else
+          return nil
         end
       end
 
-      schema_hash
+      current.is_a?(Hash) ? current : nil
     end
 
     sig do
@@ -103,9 +143,8 @@ module Ai
 
       properties.each do |prop_name, prop_schema|
         prop_type = sorbet_type(prop_name, prop_schema, depth)
-        unless required.include?(prop_name) || prop_type == 'T.untyped'
-          prop_type = "T.nilable(#{prop_type})"
-        end
+        prop_type = "T.nilable(#{prop_type})" unless required.include?(prop_name) ||
+          prop_type == 'T.untyped'
 
         comment = build_comment(prop_schema)
         lines << "  #{comment}" if comment
@@ -138,20 +177,15 @@ module Ai
 
       case type
       when 'string'
-        if resolved_schema.key?('enum')
-          enum_class_name = "#{prop_name.to_s.camelize}Enum"
+        return 'Time' if resolved_schema['format'] == 'date-time'
+        return 'String' unless resolved_schema.key?('enum')
 
-          unless @generated_classes.include?(enum_class_name)
-            @nested_definitions << generate_enum(enum_class_name, resolved_schema['enum'])
-            @generated_classes.add(enum_class_name)
-          end
+        enum_class_name = "#{prop_name.to_s.camelize}Enum"
+        return enum_class_name if @generated_classes.include?(enum_class_name)
 
-          enum_class_name
-        elsif resolved_schema['format'] == 'date-time'
-          'Time'
-        else
-          'String'
-        end
+        @nested_definitions << generate_enum(enum_class_name, resolved_schema['enum'])
+        @generated_classes.add(enum_class_name)
+        enum_class_name
       when 'integer'
         'Integer'
       when 'number'
@@ -175,18 +209,15 @@ module Ai
         end
       when 'object'
         nested_class_name = prop_name.to_s.camelize
+        return nested_class_name if @generated_classes.include?(nested_class_name)
 
-        # Only generate a new struct if we haven't processed this class name already.
-        unless @generated_classes.include?(nested_class_name)
-          definition = generate_struct(resolved_schema, nested_class_name, depth + 1)
-          if depth + 1 > 1
-            @nested_definitions.unshift(definition)
-          else
-            @nested_definitions << definition
-          end
-          @generated_classes.add(nested_class_name)
+        definition = generate_struct(resolved_schema, nested_class_name, depth + 1)
+        if depth + 1 > 1
+          @nested_definitions.unshift(definition)
+        else
+          @nested_definitions << definition
         end
-
+        @generated_classes.add(nested_class_name)
         nested_class_name
       else
         'T.untyped'
@@ -207,8 +238,6 @@ module Ai
       lines.join("\n")
     end
 
-    # Builds a single-line comment containing JSON-Schema constraints that cannot be
-    # captured by Sorbet types. Returns +nil+ if no relevant constraints are present.
     sig { params(prop_schema: T::Hash[String, T.untyped]).returns(T.nilable(String)) } # rubocop:disable Sorbet/ForbidTUntyped
     def build_comment(prop_schema)
       keys_in_order = %w[
