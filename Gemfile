@@ -10,9 +10,9 @@ gem 'activesupport'
 gem 'actionpack'
 gem 'railties'
 gem 'json_schemer', '~> 2.4'
-gem 'sorbet', '0.6.12544'
+gem 'sorbet', '0.5.12196'
 gem 'sorbet-coerce', '~> 0.7'
-gem 'sorbet-static-and-runtime', '0.6.12544'
+gem 'sorbet-static-and-runtime', '0.5.12196'
 
 group :development, :test do
   gem 'rspec'
