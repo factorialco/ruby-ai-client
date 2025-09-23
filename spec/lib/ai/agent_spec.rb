@@ -12,9 +12,9 @@ RSpec.describe Ai::Agent do
       result = agent.generate_text(messages: [Ai.user_message('Hello, world!')])
       expect(result.text).to eq('Hello, world!')
       expect(result.finish_reason).to eq(:stop)
-      expect(result.usage.prompt_tokens).to eq(0)
-      expect(result.usage.completion_tokens).to eq(0)
-      expect(result.usage.total_tokens).to eq(0)
+      expect(result.total_usage.input_tokens).to eq(8)
+      expect(result.total_usage.output_tokens).to eq(3)
+      expect(result.total_usage.total_tokens).to eq(11)
     end
 
     it 'passes runtime_context to the client' do
@@ -51,19 +51,23 @@ RSpec.describe Ai::Agent do
     end
 
     it 'passes telemetry settings to client' do
-      telemetry_settings = Ai::TelemetrySettings.new(
-        enabled: true,
-        record_inputs: true,
-        record_outputs: true,
-        function_id: 'test-function',
-        metadata: { 'agent.name' => 'test-agent' }
-      )
+      telemetry_settings =
+        Ai::TelemetrySettings.new(
+          enabled: true,
+          record_inputs: true,
+          record_outputs: true,
+          function_id: 'test-function',
+          metadata: {
+            'agent.name' => 'test-agent'
+          }
+        )
 
       expect(client).to receive(:generate).with(
         'test',
         messages: anything,
         options: {
-          runtime_context: {},
+          runtime_context: {
+          },
           max_retries: 2,
           max_steps: 5,
           telemetry: telemetry_settings
@@ -78,7 +82,8 @@ RSpec.describe Ai::Agent do
         'test',
         messages: anything,
         options: {
-          runtime_context: {},
+          runtime_context: {
+          },
           max_retries: 2,
           max_steps: 5,
           telemetry: kind_of(Ai::TelemetrySettings)
@@ -96,7 +101,7 @@ RSpec.describe Ai::Agent do
       expect(result).to respond_to(:files)
       expect(result).to respond_to(:reasoning)
       expect(result).to respond_to(:finish_reason)
-      expect(result).to respond_to(:usage)
+      expect(result).to respond_to(:total_usage)
       expect(result).to respond_to(:steps)
       expect(result).to respond_to(:tool_calls)
       expect(result).to respond_to(:tool_results)
@@ -128,9 +133,11 @@ RSpec.describe Ai::Agent do
       expect(result.object.name).to eq('John Doe')
       expect(result.object.age).to eq(30)
       expect(result.finish_reason).to eq(:stop)
-      expect(result.usage.prompt_tokens).to eq(0)
-      expect(result.usage.completion_tokens).to eq(0)
-      expect(result.usage.total_tokens).to eq(0)
+      expect(result.total_usage.input_tokens).to eq(10)
+      expect(result.total_usage.output_tokens).to eq(5)
+      expect(result.total_usage.total_tokens).to eq(15)
+      expect(result.total_usage.reasoning_tokens).to be_nil
+      expect(result.total_usage.cached_input_tokens).to be_nil
     end
 
     it 'passes runtime_context and options to client' do
@@ -144,7 +151,7 @@ RSpec.describe Ai::Agent do
             runtime_context: runtime_context,
             max_retries: 3,
             max_steps: 8,
-            output: anything,
+            structured_output: hash_including(schema: anything),
             telemetry: anything
           )
       ).and_call_original
@@ -159,21 +166,25 @@ RSpec.describe Ai::Agent do
     end
 
     it 'passes telemetry settings for object generation' do
-      telemetry_settings = Ai::TelemetrySettings.new(
-        enabled: true,
-        record_inputs: false,
-        record_outputs: true,
-        function_id: 'object-generation',
-        metadata: { 'output.type' => 'Person' }
-      )
+      telemetry_settings =
+        Ai::TelemetrySettings.new(
+          enabled: true,
+          record_inputs: false,
+          record_outputs: true,
+          function_id: 'object-generation',
+          metadata: {
+            'output.type' => 'Person'
+          }
+        )
 
       expect(client).to receive(:generate).with(
         'test',
         messages: anything,
-        options: hash_including(
-          telemetry: telemetry_settings,
-          output: anything
-        )
+        options:
+          hash_including(
+            telemetry: telemetry_settings,
+            structured_output: hash_including(schema: anything)
+          )
       ).and_call_original
 
       agent.generate_object(
@@ -188,7 +199,7 @@ RSpec.describe Ai::Agent do
 
       expect(result).to respond_to(:object)
       expect(result).to respond_to(:finish_reason)
-      expect(result).to respond_to(:usage)
+      expect(result).to respond_to(:total_usage)
       expect(result).to respond_to(:warnings)
       expect(result).to respond_to(:request)
       expect(result).to respond_to(:response)

@@ -10,8 +10,8 @@ module Ai
     const :object, Elem
     # Why the language-model call finished (e.g. :stop, :length…)
     const :finish_reason, Ai::FinishReason
-    # Token usage details for the request/response
-    const :usage, LanguageModelUsage
+    # Usage format
+    const :total_usage, T.nilable(TotalUsage), default: nil
     # Provider warnings (e.g. unsupported settings)
     const :warnings, T.nilable(T::Array[CallWarning])
     # Raw request metadata (body, headers, etc.)

@@ -90,5 +90,124 @@ RSpec.describe Ai::SchemaToStructString do
 
       expect(result).to eq(expected)
     end
+
+    it 'handles complex Zod schemas with circular references and enums' do
+      # This schema mimics the structure from talentEngagementMeetingsChat workflow
+      complex_schema = {
+        'json' => {
+          'type' => 'object',
+          'properties' => {
+            'currentMessage' => {
+              'type' => 'object',
+              'properties' => {
+                'role' => {
+                  'type' => 'string',
+                  'enum' => %w[user assistant system],
+                  'description' => 'Message role'
+                },
+                'content' => {
+                  'type' => 'string',
+                  'description' => 'Message content'
+                }
+              },
+              'required' => %w[role content]
+            },
+            'directReports' => {
+              'type' => 'array',
+              'items' => {
+                'type' => 'object',
+                'properties' => {
+                  'employeeId' => {
+                    'type' => 'string'
+                  },
+                  'name' => {
+                    'type' => 'string'
+                  },
+                  'position' => {
+                    'type' => 'string'
+                  },
+                  'meetings' => {
+                    'type' => 'array',
+                    'items' => {
+                      'type' => 'object',
+                      'properties' => {
+                        'id' => {
+                          'type' => 'integer'
+                        },
+                        'date' => {
+                          'type' => 'string'
+                        }
+                      },
+                      'required' => %w[id date]
+                    }
+                  }
+                },
+                'required' => %w[employeeId name meetings]
+              }
+            },
+            'cache' => {
+              'type' => 'object',
+              'properties' => {
+                'directReports' => {
+                  'type' => 'array',
+                  'items' => {
+                    'type' => 'object',
+                    'properties' => {
+                      'employeeId' => {
+                        'type' => 'string'
+                      },
+                      'name' => {
+                        'type' => 'string'
+                      }
+                    },
+                    'required' => %w[employeeId name]
+                  }
+                }
+              },
+              'required' => ['directReports']
+            }
+          },
+          'required' => ['currentMessage']
+        }
+      }.to_json
+
+      result = converter.convert(complex_schema, class_name: 'ComplexInput')
+
+      # Verify key aspects without full string matching
+      expect(result).to include('class ComplexInput < T::Struct')
+      expect(result).to include('class RoleEnum < T::Enum')
+      expect(result).to include('User = new(\'user\')')
+      expect(result).to include('Assistant = new(\'assistant\')')
+      expect(result).to include('System = new(\'system\')')
+      expect(result).to include('const :role, RoleEnum')
+      expect(result).to include('const :content, String')
+      expect(result).to include('T::Array[DirectReport]')
+      expect(result).to include('T::Array[Meeting]')
+
+      # Should not contain T.untyped anywhere
+      expect(result).not_to include('T.untyped')
+    end
+
+    it 'handles schemas with optional properties correctly' do
+      optional_schema = {
+        'json' => {
+          'type' => 'object',
+          'properties' => {
+            'required_field' => {
+              'type' => 'string'
+            },
+            'optional_field' => {
+              'type' => 'string'
+            }
+          },
+          'required' => ['required_field']
+        }
+      }.to_json
+
+      result = converter.convert(optional_schema, class_name: 'OptionalTest')
+
+      expect(result).to include('const :required_field, String')
+      expect(result).to include('const :optional_field, T.nilable(String)')
+    end
   end
 end
