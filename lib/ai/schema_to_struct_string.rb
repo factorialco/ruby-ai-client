@@ -23,6 +23,8 @@ module Ai
       @root_class_name = class_name
       @generated_classes = T.let(Set.new, T::Set[String])
       @nested_definitions = T.let([], T::Array[String])
+      @schema_definitions = T.let({}, T::Hash[String, T::Hash[String, T.untyped]]) # rubocop:disable Sorbet/ForbidTUntyped
+      @resolved_refs = T.let({}, T::Hash[String, T::Hash[String, T.untyped]]) # rubocop:disable Sorbet/ForbidTUntyped
     end
 
     sig { returns(String) }
@@ -31,22 +33,69 @@ module Ai
       (@nested_definitions + [main_definition]).join("\n\n")
     end
 
-    sig { returns(T::Hash[String, T.untyped]) }
+    sig { returns(T::Hash[String, T.untyped]) } # rubocop:disable Sorbet/ForbidTUntyped
     def parsed_schema
-      @parsed_schema ||= T.let(JSON.parse(@schema)['json'], T.nilable(T::Hash[String, T.untyped]))
+      return @parsed_schema if @parsed_schema
+
+      full_schema = T.let(JSON.parse(@schema), T::Hash[String, T.untyped]) # rubocop:disable Sorbet/ForbidTUntyped
+
+      if full_schema.key?('json')
+        @parsed_schema = T.let(full_schema['json'], T.nilable(T::Hash[String, T.untyped])) # rubocop:disable Sorbet/ForbidTUntyped
+      elsif full_schema.key?('$defs') || full_schema.key?('definitions')
+        @schema_definitions = full_schema['$defs'] || full_schema['definitions'] || {}
+        @parsed_schema = full_schema
+      else
+        @parsed_schema = full_schema
+      end
+
+      @parsed_schema || {}
     rescue JSON::ParserError => e
       raise ArgumentError, "Invalid JSON schema provided: #{e.message}"
     end
 
+    # rubocop:disable Sorbet/ForbidTUntyped
+    sig do
+      params(schema_hash: T::Hash[T.any(Symbol, String), T.untyped]).returns(
+        T::Hash[T.any(Symbol, String), T.untyped]
+      )
+    end
+    # rubocop:enable Sorbet/ForbidTUntyped
+    def resolve_ref(schema_hash)
+      ref = schema_hash['$ref']
+      return schema_hash unless ref
+
+      return T.must(@resolved_refs[ref]) if @resolved_refs.key?(ref)
+
+      if ref.start_with?('#/$defs/', '#/definitions/')
+        ref_name = ref.split('/').last
+        resolved = @schema_definitions[ref_name]
+        if resolved
+          @resolved_refs[ref] = resolved
+          return resolved
+        end
+      elsif ref.start_with?('#/')
+        parts = ref.split('/')[1..]
+        current = T.let(parsed_schema, T.untyped) # rubocop:disable Sorbet/ForbidTUntyped
+        parts.each { |part| current = current[part] if current.is_a?(Hash) }
+        resolved = current.is_a?(Hash) ? current : nil
+        if resolved
+          @resolved_refs[ref] = resolved
+          return resolved
+        end
+      end
+
+      schema_hash
+    end
+
     sig do
       params(
-        schema_hash: T::Hash[T.any(Symbol, String), T.untyped],
+        schema_hash: T::Hash[T.any(Symbol, String), T.untyped], # rubocop:disable Sorbet/ForbidTUntyped
         class_name: String,
         depth: Integer
       ).returns(String)
     end
     def generate_struct(schema_hash, class_name, depth = 0)
-      properties = T.let(schema_hash.fetch('properties', {}), T::Hash[String, T.untyped])
+      properties = T.let(schema_hash.fetch('properties', {}), T::Hash[String, T.untyped]) # rubocop:disable Sorbet/ForbidTUntyped
       required = T.let(schema_hash.fetch('required', []), T::Array[String])
 
       lines = []
@@ -70,33 +119,35 @@ module Ai
     sig do
       params(
         prop_name: T.any(Symbol, String),
-        prop_schema: T::Hash[T.any(Symbol, String), T.untyped],
+        prop_schema: T::Hash[T.any(Symbol, String), T.untyped], # rubocop:disable Sorbet/ForbidTUntyped
         depth: Integer
       ).returns(String)
     end
     def sorbet_type(prop_name, prop_schema, depth) # rubocop:disable Metrics/CyclomaticComplexity
-      type = prop_schema['type'] || prop_schema[:type]
+      resolved_schema = resolve_ref(prop_schema)
+      type = T.unsafe(resolved_schema['type'] || resolved_schema[:type]) # rubocop:disable Sorbet/ForbidTUnsafe
 
-      # Handle union types declared as an array of primitive types, e.g. ["string", "number"].
       if type.is_a?(Array)
         non_null = type.reject { |t| t == 'null' }
         ruby_types =
-          non_null.map { |t| sorbet_type(prop_name, prop_schema.merge('type' => t), depth) }.uniq
+          non_null
+            .map { |t| sorbet_type(prop_name, resolved_schema.merge('type' => t), depth) }
+            .uniq
         return "T.any(#{ruby_types.join(', ')})"
       end
 
       case type
       when 'string'
-        if prop_schema.key?('enum')
+        if resolved_schema.key?('enum')
           enum_class_name = "#{prop_name.to_s.camelize}Enum"
 
           unless @generated_classes.include?(enum_class_name)
-            @nested_definitions << generate_enum(enum_class_name, prop_schema['enum'])
+            @nested_definitions << generate_enum(enum_class_name, resolved_schema['enum'])
             @generated_classes.add(enum_class_name)
           end
 
           enum_class_name
-        elsif prop_schema['format'] == 'date-time'
+        elsif resolved_schema['format'] == 'date-time'
           'Time'
         else
           'String'
@@ -110,15 +161,16 @@ module Ai
       when 'null'
         'NilClass'
       when 'array'
-        items = prop_schema['items'] || prop_schema[:items] || {}
+        raw_items = resolved_schema['items'] || resolved_schema[:items] || {}
 
-        if items.is_a?(Array)
+        if raw_items.is_a?(Array)
           tuple_types =
-            items.map.with_index do |schema, idx|
+            raw_items.map.with_index do |schema, idx|
               sorbet_type("#{prop_name.to_s.singularize}_#{idx}", schema, depth + 1)
             end
           "T::Array[T.any(#{tuple_types.join(', ')})]"
         else
+          items = T.cast(raw_items, T::Hash[T.any(Symbol, String), T.untyped]) # rubocop:disable Sorbet/ForbidTUntyped
           "T::Array[#{sorbet_type(prop_name.to_s.singularize, items, depth + 1)}]"
         end
       when 'object'
@@ -126,7 +178,7 @@ module Ai
 
         # Only generate a new struct if we haven't processed this class name already.
         unless @generated_classes.include?(nested_class_name)
-          definition = generate_struct(prop_schema, nested_class_name, depth + 1)
+          definition = generate_struct(resolved_schema, nested_class_name, depth + 1)
           if depth + 1 > 1
             @nested_definitions.unshift(definition)
           else
@@ -141,7 +193,7 @@ module Ai
       end
     end
 
-    sig { params(class_name: String, values: T::Array[T.untyped]).returns(String) }
+    sig { params(class_name: String, values: T::Array[String]).returns(String) }
     def generate_enum(class_name, values)
       lines = []
       lines << "class #{class_name} < T::Enum"
@@ -157,7 +209,7 @@ module Ai
 
     # Builds a single-line comment containing JSON-Schema constraints that cannot be
     # captured by Sorbet types. Returns +nil+ if no relevant constraints are present.
-    sig { params(prop_schema: T::Hash[T.untyped, T.untyped]).returns(T.nilable(String)) }
+    sig { params(prop_schema: T::Hash[String, T.untyped]).returns(T.nilable(String)) } # rubocop:disable Sorbet/ForbidTUntyped
     def build_comment(prop_schema)
       keys_in_order = %w[
         minLength
