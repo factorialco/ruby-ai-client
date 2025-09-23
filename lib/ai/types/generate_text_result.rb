@@ -13,10 +13,7 @@ module Ai
     const :tool_calls, ToolCallArray
     const :tool_results, ToolResultArray
     const :finish_reason, FinishReason
-    # Legacy usage format
     const :usage, LanguageModelUsage
-    # VNext usage format
-    const :total_usage, T.nilable(TotalUsage), default: nil
     const :warnings, T.nilable(T::Array[CallWarning])
     const :steps, T::Array[StepResult]
     const :request, LanguageModelRequestMetadata

@@ -25,19 +25,8 @@ module Ai
         telemetry: Ai::TelemetrySettings
       ).returns(Ai::GenerateTextResult)
     end
-    def generate_text(
-      messages:,
-      runtime_context: {},
-      max_retries: 2,
-      max_steps: 5,
-      telemetry: Ai::TelemetrySettings.new
-    )
-      options = {
-        runtime_context: runtime_context,
-        max_retries: max_retries,
-        max_steps: max_steps,
-        telemetry: telemetry
-      }
+    def generate_text(messages:, runtime_context: {}, max_retries: 2, max_steps: 5, telemetry: Ai::TelemetrySettings.new)
+      options = { runtime_context: runtime_context, max_retries: max_retries, max_steps: max_steps, telemetry: telemetry }
 
       data = client.generate(agent_name, messages: messages, options: options)
       TypeCoerce[Ai::GenerateTextResult].new.from(data, raise_coercion_error: false)
@@ -55,23 +44,14 @@ module Ai
         )
         .returns(GenerateObjectResult[T.type_parameter(:O)])
     end
-    def generate_object(
-      messages:,
-      output_class:,
-      runtime_context: {},
-      max_retries: 2,
-      max_steps: 5,
-      telemetry: Ai::TelemetrySettings.new
-    )
-      schema = Ai::StructToJsonSchema.convert(T.cast(output_class, T.class_of(T::Struct)))
+    def generate_object(messages:, output_class:, runtime_context: {}, max_retries: 2, max_steps: 5, telemetry: Ai::TelemetrySettings.new)
+      output = Ai::StructToJsonSchema.convert(T.cast(output_class, T.class_of(T::Struct)))
 
       options = {
         runtime_context: runtime_context,
         max_retries: max_retries,
         max_steps: max_steps,
-        structured_output: {
-          schema: schema
-        },
+        output: output,
         telemetry: telemetry
       }
 
