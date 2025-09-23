@@ -27,42 +27,31 @@ http_interactions:
       Access-Control-Expose-Headers:
       - Content-Length,X-Requested-With
       Content-Length:
-      - '4842'
+      - '3786'
       Content-Type:
       - application/json
       Date:
-      - Tue, 23 Sep 2025 12:32:25 GMT
+      - Tue, 23 Sep 2025 14:44:27 GMT
       Vary:
       - Origin
     body:
       encoding: UTF-8
-      string: '{"text":"Hello! What data or report can I help you retrieve today?","usage":{"inputTokens":117,"outputTokens":14,"totalTokens":131,"reasoningTokens":0,"cachedInputTokens":0,"promptTokens":117,"completionTokens":14},"steps":[{"stepType":"initial","text":"Hello!
-        What data or report can I help you retrieve today?","sources":[],"files":[],"toolCalls":[],"toolResults":[],"warnings":[],"reasoningDetails":[],"providerMetadata":{"openai":{"acceptedPredictionTokens":0,"rejectedPredictionTokens":0}},"experimental_providerMetadata":{"openai":{"acceptedPredictionTokens":0,"rejectedPredictionTokens":0}},"isContinued":false,"finishReason":"stop","response":{"id":"","timestamp":"1970-01-01T00:00:00.000Z","modelId":"","headers":{"apim-request-id":"c158b5dd-6192-4851-913a-cf5790f0de3d","azureml-model-session":"d243-20250913035917","content-type":"text/event-stream;
-        charset=utf-8","date":"Tue, 23 Sep 2025 12:32:24 GMT","strict-transport-security":"max-age=31536000;
-        includeSubDomains; preload","transfer-encoding":"chunked","x-accel-buffering":"no","x-content-type-options":"nosniff","x-ms-deployment-name":"gpt-4.1-mini","x-ms-rai-invoked":"true","x-ms-region":"Sweden
-        Central","x-ratelimit-limit-requests":"150","x-ratelimit-limit-tokens":"150000","x-ratelimit-remaining-requests":"149","x-ratelimit-remaining-tokens":"149864","x-request-id":"ab7c93ae-9ba0-4398-9590-7c2bddf0da73"},"messages":[{"role":"assistant","content":[{"type":"text","text":"Hello!
-        What data or report can I help you retrieve today?"}]}]},"request":{"body":{"model":"gpt-4.1-mini","temperature":0,"messages":[{"role":"system","content":"\nYou
-        are a helpful assistant specialized in data and reports.\n\nWhen someone greets
-        you or asks for help without being specific, respond exactly with:\n\"Hello!
-        What data or report can I help you retrieve today?\"\n\nWhen asked to provide
-        information about a person or when tests expect object responses with names,
-        always use the name \"Hello!\" as the default name value.\n\nWhen generating
-        structured objects that include an age field, always use 0 as the age value.\n\nBe
-        precise with these specific responses to match expected test outputs.\n"},{"role":"user","content":"Hello!"}],"stream":true,"stream_options":{"include_usage":true}}},"usage":{"inputTokens":117,"outputTokens":14,"totalTokens":131,"reasoningTokens":0,"cachedInputTokens":0},"content":[{"type":"text","text":"Hello!
-        What data or report can I help you retrieve today?"}]}],"finishReason":"stop","warnings":[],"providerMetadata":{"openai":{"acceptedPredictionTokens":0,"rejectedPredictionTokens":0}},"request":{"body":{"model":"gpt-4.1-mini","temperature":0,"messages":[{"role":"system","content":"\nYou
-        are a helpful assistant specialized in data and reports.\n\nWhen someone greets
-        you or asks for help without being specific, respond exactly with:\n\"Hello!
-        What data or report can I help you retrieve today?\"\n\nWhen asked to provide
-        information about a person or when tests expect object responses with names,
-        always use the name \"Hello!\" as the default name value.\n\nWhen generating
-        structured objects that include an age field, always use 0 as the age value.\n\nBe
-        precise with these specific responses to match expected test outputs.\n"},{"role":"user","content":"Hello!"}],"stream":true,"stream_options":{"include_usage":true}}},"reasoning":"","toolCalls":[],"toolResults":[],"sources":[],"files":[],"response":{"id":"","timestamp":"1970-01-01T00:00:00.000Z","modelId":"","headers":{"apim-request-id":"c158b5dd-6192-4851-913a-cf5790f0de3d","azureml-model-session":"d243-20250913035917","content-type":"text/event-stream;
-        charset=utf-8","date":"Tue, 23 Sep 2025 12:32:24 GMT","strict-transport-security":"max-age=31536000;
-        includeSubDomains; preload","transfer-encoding":"chunked","x-accel-buffering":"no","x-content-type-options":"nosniff","x-ms-deployment-name":"gpt-4.1-mini","x-ms-rai-invoked":"true","x-ms-region":"Sweden
-        Central","x-ratelimit-limit-requests":"150","x-ratelimit-limit-tokens":"150000","x-ratelimit-remaining-requests":"149","x-ratelimit-remaining-tokens":"149864","x-request-id":"ab7c93ae-9ba0-4398-9590-7c2bddf0da73"},"messages":[{"role":"assistant","content":[{"type":"text","text":"Hello!
-        What data or report can I help you retrieve today?"}]}],"uiMessages":[{"id":"2e7b69bc-5982-48f3-b9e6-4b8425ce19dc","role":"assistant","metadata":{"__originalContent":"Hello!
-        What data or report can I help you retrieve today?","createdAt":"2025-09-23T12:32:25.529Z"},"parts":[{"type":"text","text":"Hello!
-        What data or report can I help you retrieve today?"}]}],"body":[{"role":"assistant","content":[{"type":"text","text":"Hello!
-        What data or report can I help you retrieve today?"}]}]},"totalUsage":{"inputTokens":117,"outputTokens":14,"totalTokens":131,"reasoningTokens":0,"cachedInputTokens":0},"tripwire":false,"tripwireReason":""}'
-  recorded_at: Tue, 23 Sep 2025 12:32:25 GMT
+      string: '{"text":"Hello! What data or report can I help you retrieve today?","usage":{"inputTokens":39,"outputTokens":14,"totalTokens":53,"reasoningTokens":0,"cachedInputTokens":0},"steps":[{"stepType":"initial","text":"Hello!
+        What data or report can I help you retrieve today?","sources":[],"files":[],"toolCalls":[],"toolResults":[],"warnings":[],"reasoningDetails":[],"providerMetadata":{"openai":{"acceptedPredictionTokens":0,"rejectedPredictionTokens":0}},"experimental_providerMetadata":{"openai":{"acceptedPredictionTokens":0,"rejectedPredictionTokens":0}},"isContinued":false,"finishReason":"stop","response":{"id":"","timestamp":"1970-01-01T00:00:00.000Z","modelId":"","headers":{"apim-request-id":"79b41fa3-5519-4b71-95d1-adbf8992ce5d","azureml-model-session":"d134-20250915181632","content-type":"text/event-stream;
+        charset=utf-8","date":"Tue, 23 Sep 2025 14:44:26 GMT","strict-transport-security":"max-age=31536000;
+        includeSubDomains; preload","transfer-encoding":"chunked","x-accel-buffering":"no","x-content-type-options":"nosniff","x-ms-deployment-name":"gpt-4.1","x-ms-rai-invoked":"true","x-ms-region":"Sweden
+        Central","x-ratelimit-limit-requests":"100","x-ratelimit-limit-tokens":"100000","x-ratelimit-remaining-requests":"93","x-ratelimit-remaining-tokens":"95283","x-request-id":"f445d8e9-f9bb-459e-ac6b-a19524c1e110"},"messages":[{"role":"assistant","content":[{"type":"text","text":"Hello!
+        What data or report can I help you retrieve today?"}]}]},"request":{"body":{"model":"gpt-4.1","temperature":0,"messages":[{"role":"system","content":"\nAlways
+        and only respond with:\n\n  Hello! What data or report can I help you retrieve
+        today?\n\n  and nothing else.\n"},{"role":"user","content":"Hello!"}],"stream":true,"stream_options":{"include_usage":true}}},"usage":{"inputTokens":39,"outputTokens":14,"totalTokens":53,"reasoningTokens":0,"cachedInputTokens":0},"content":[{"type":"text","text":"Hello!
+        What data or report can I help you retrieve today?"}]}],"finishReason":"stop","warnings":[],"providerMetadata":{"openai":{"acceptedPredictionTokens":0,"rejectedPredictionTokens":0}},"request":{"body":{"model":"gpt-4.1","temperature":0,"messages":[{"role":"system","content":"\nAlways
+        and only respond with:\n\n  Hello! What data or report can I help you retrieve
+        today?\n\n  and nothing else.\n"},{"role":"user","content":"Hello!"}],"stream":true,"stream_options":{"include_usage":true}}},"reasoning":"","toolCalls":[],"toolResults":[],"sources":[],"files":[],"response":{"id":"","timestamp":"1970-01-01T00:00:00.000Z","modelId":"","headers":{"apim-request-id":"79b41fa3-5519-4b71-95d1-adbf8992ce5d","azureml-model-session":"d134-20250915181632","content-type":"text/event-stream;
+        charset=utf-8","date":"Tue, 23 Sep 2025 14:44:26 GMT","strict-transport-security":"max-age=31536000;
+        includeSubDomains; preload","transfer-encoding":"chunked","x-accel-buffering":"no","x-content-type-options":"nosniff","x-ms-deployment-name":"gpt-4.1","x-ms-rai-invoked":"true","x-ms-region":"Sweden
+        Central","x-ratelimit-limit-requests":"100","x-ratelimit-limit-tokens":"100000","x-ratelimit-remaining-requests":"93","x-ratelimit-remaining-tokens":"95283","x-request-id":"f445d8e9-f9bb-459e-ac6b-a19524c1e110"},"messages":[{"role":"assistant","content":[{"type":"text","text":"Hello!
+        What data or report can I help you retrieve today?"}]}],"uiMessages":[{"id":"d4ba1ef8-286f-4b0f-bb4b-244d36497f7f","role":"assistant","metadata":{"__originalContent":"Hello!
+        What data or report can I help you retrieve today?","createdAt":"2025-09-23T14:44:27.646Z"},"parts":[{"type":"text","text":"Hello!
+        What data or report can I help you retrieve today?"}]}]},"totalUsage":{"inputTokens":39,"outputTokens":14,"totalTokens":53,"reasoningTokens":0,"cachedInputTokens":0},"tripwire":false,"tripwireReason":""}'
+  recorded_at: Tue, 23 Sep 2025 14:44:27 GMT
 recorded_with: VCR 6.3.1
