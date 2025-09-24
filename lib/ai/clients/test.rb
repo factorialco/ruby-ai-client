@@ -45,7 +45,7 @@ module Ai
           {
             'object' => @returned_object,
             'finish_reason' => 'stop',
-            'total_usage' => {
+            'usage' => {
               'input_tokens' => 10,
               'output_tokens' => 5,
               'total_tokens' => 15
@@ -76,7 +76,7 @@ module Ai
             'tool_calls' => [],
             'tool_results' => [],
             'finish_reason' => 'stop',
-            'total_usage' => {
+            'usage' => {
               'input_tokens' => 8,
               'output_tokens' => 3,
               'total_tokens' => 11

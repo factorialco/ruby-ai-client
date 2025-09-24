@@ -67,7 +67,14 @@ module Ai
         url = URI.join(@base_uri, "api/agents/#{agent_name}/generate")
         generated_response = response(url: url, messages: messages, options: options)
 
-        JSON.parse(generated_response.body || '').deep_transform_keys(&:underscore)
+        parsed_response =
+          JSON.parse(generated_response.body || '').deep_transform_keys(&:underscore)
+
+        if parsed_response['response'] && parsed_response['response']['messages']
+          parsed_response['response']['body'] = parsed_response['response']['messages']
+        end
+
+        parsed_response
       end
 
       sig do
