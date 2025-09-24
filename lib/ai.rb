@@ -32,7 +32,7 @@ module Ai
   autoload :ResponseMetadata, 'ai/types/response_metadata'
   autoload :StepResult, 'ai/types/step_result'
   autoload :TelemetrySettings, 'ai/types/telemetry_settings'
-  autoload :TotalUsage, 'ai/types/total_usage'
+  autoload :Usage, 'ai/types/usage'
 
   ToolSet = T.type_alias { T::Hash[String, T.anything] }
   ToolCall = T.type_alias { T.anything }

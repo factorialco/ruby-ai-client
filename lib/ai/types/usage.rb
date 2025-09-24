@@ -1,7 +1,7 @@
 # typed: strict
 
 module Ai
-  class TotalUsage < T::Struct
+  class Usage < T::Struct
     const :input_tokens, Integer
     const :output_tokens, Integer
     const :total_tokens, Integer
