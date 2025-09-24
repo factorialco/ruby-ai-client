@@ -10,7 +10,7 @@ module Ai
     const :tool_calls, ToolCallArray
     const :tool_results, ToolResultArray
     const :finish_reason, FinishReason
-    const :total_usage, T.nilable(TotalUsage), default: nil
+    const :usage, T.nilable(Usage), default: nil
     const :warnings, T.nilable(T::Array[CallWarning])
     const :logprobs, T.nilable(LogProbs)
     const :request, LanguageModelRequestMetadata

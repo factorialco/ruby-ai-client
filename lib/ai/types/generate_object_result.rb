@@ -11,7 +11,7 @@ module Ai
     # Why the language-model call finished (e.g. :stop, :length…)
     const :finish_reason, Ai::FinishReason
     # Usage format
-    const :total_usage, T.nilable(TotalUsage), default: nil
+    const :usage, T.nilable(Usage), default: nil
     # Provider warnings (e.g. unsupported settings)
     const :warnings, T.nilable(T::Array[CallWarning])
     # Raw request metadata (body, headers, etc.)
