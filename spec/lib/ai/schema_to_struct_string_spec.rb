@@ -356,5 +356,205 @@ RSpec.describe Ai::SchemaToStructString do
         expect(result).not_to include('T.untyped')
       end
     end
+
+    describe 'nullable type handling' do
+      it 'handles anyOf with null for nullable types (Zod .nullable())' do
+        nullable_schema = {
+          'json' => {
+            'type' => 'object',
+            'properties' => {
+              'name' => {
+                'anyOf' => [{ 'type' => 'string' }, { 'type' => 'null' }]
+              }
+            },
+            'required' => ['name']
+          }
+        }.to_json
+
+        result = converter.convert(nullable_schema, class_name: 'NullableTest')
+
+        expect(result).to include('const :name, T.nilable(String)')
+        expect(result).not_to include('T.untyped')
+      end
+
+      it 'handles type arrays with null for nullable types' do
+        nullable_schema = {
+          'json' => {
+            'type' => 'object',
+            'properties' => {
+              'count' => {
+                'type' => %w[integer null]
+              }
+            },
+            'required' => ['count']
+          }
+        }.to_json
+
+        result = converter.convert(nullable_schema, class_name: 'NullableTypeArray')
+
+        expect(result).to include('const :count, T.nilable(Integer)')
+      end
+
+      it 'handles nullable nested objects' do
+        nullable_nested_schema = {
+          'json' => {
+            'type' => 'object',
+            'properties' => {
+              'metadata' => {
+                'anyOf' => [
+                  {
+                    'type' => 'object',
+                    'properties' => {
+                      'version' => {
+                        'type' => 'string'
+                      }
+                    },
+                    'required' => ['version']
+                  },
+                  { 'type' => 'null' }
+                ]
+              }
+            },
+            'required' => ['metadata']
+          }
+        }.to_json
+
+        result = converter.convert(nullable_nested_schema, class_name: 'NullableNested')
+
+        expect(result).to include('class Metadata < T::Struct')
+        expect(result).to include('const :version, String')
+        expect(result).to include('const :metadata, T.nilable(Metadata)')
+        expect(result).not_to include('T.untyped')
+      end
+
+      it 'does not double-wrap nullable types' do
+        nullable_optional_schema = {
+          'json' => {
+            'type' => 'object',
+            'properties' => {
+              'optional_nullable' => {
+                'anyOf' => [{ 'type' => 'string' }, { 'type' => 'null' }]
+              }
+            },
+            'required' => []
+          }
+        }.to_json
+
+        result = converter.convert(nullable_optional_schema, class_name: 'NoDoubleWrap')
+
+        # Should have T.nilable once, not T.nilable(T.nilable(...))
+        expect(result).to include('const :optional_nullable, T.nilable(String)')
+        expect(result).not_to match(/T\.nilable\(T\.nilable/)
+      end
+    end
+
+    describe 'dependency sorting' do
+      it 'sorts nested structs by dependency order' do
+        dependency_schema = {
+          'json' => {
+            'type' => 'object',
+            'properties' => {
+              'report' => {
+                'type' => 'object',
+                'properties' => {
+                  'employee' => {
+                    'type' => 'object',
+                    'properties' => {
+                      'id' => {
+                        'type' => 'string'
+                      },
+                      'name' => {
+                        'type' => 'string'
+                      }
+                    },
+                    'required' => %w[id name]
+                  },
+                  'meeting' => {
+                    'type' => 'object',
+                    'properties' => {
+                      'id' => {
+                        'type' => 'integer'
+                      },
+                      'employee_id' => {
+                        'type' => 'string'
+                      }
+                    },
+                    'required' => %w[id employee_id]
+                  }
+                },
+                'required' => %w[employee meeting]
+              }
+            },
+            'required' => ['report']
+          }
+        }.to_json
+
+        result = converter.convert(dependency_schema, class_name: 'DependencyTest')
+
+        # Employee and Meeting should come before Report
+        employee_pos = result.index('class Employee < T::Struct')
+        meeting_pos = result.index('class Meeting < T::Struct')
+        report_pos = result.index('class Report < T::Struct')
+        input_pos = result.index('class DependencyTest < T::Struct')
+
+        expect(employee_pos).to be < report_pos
+        expect(meeting_pos).to be < report_pos
+        expect(report_pos).to be < input_pos
+      end
+
+      it 'sorts complex nested dependencies correctly' do
+        complex_dependency_schema = {
+          'json' => {
+            'type' => 'object',
+            'properties' => {
+              'direct_reports' => {
+                'type' => 'array',
+                'items' => {
+                  'type' => 'object',
+                  'properties' => {
+                    'employee_info' => {
+                      'type' => 'object',
+                      'properties' => {
+                        'id' => {
+                          'type' => 'string'
+                        },
+                        'name' => {
+                          'type' => 'string'
+                        }
+                      },
+                      'required' => %w[id name]
+                    },
+                    'meetings' => {
+                      'type' => 'array',
+                      'items' => {
+                        'type' => 'object',
+                        'properties' => {
+                          'id' => {
+                            'type' => 'integer'
+                          }
+                        },
+                        'required' => ['id']
+                      }
+                    }
+                  },
+                  'required' => %w[employee_info meetings]
+                }
+              }
+            },
+            'required' => ['direct_reports']
+          }
+        }.to_json
+
+        result = converter.convert(complex_dependency_schema, class_name: 'ComplexDep')
+
+        # EmployeeInfo and Meeting should come before DirectReport
+        employee_info_pos = result.index('class EmployeeInfo < T::Struct')
+        meeting_pos = result.index('class Meeting < T::Struct')
+        direct_report_pos = result.index('class DirectReport < T::Struct')
+
+        expect(employee_info_pos).to be < direct_report_pos
+        expect(meeting_pos).to be < direct_report_pos
+      end
+    end
   end
 end
