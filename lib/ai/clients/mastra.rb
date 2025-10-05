@@ -74,6 +74,10 @@ module Ai
           parsed_response['response']['body'] = parsed_response['response']['messages']
         end
 
+        if parsed_response['reasoning']
+          parsed_response['reasoning_details'] = parsed_response['reasoning']
+        end
+
         parsed_response
       end
 
