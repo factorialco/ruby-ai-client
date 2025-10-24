@@ -3,8 +3,9 @@
 module Ai
   class StepResult < T::Struct
     const :text, String
-    const :reasoning, T.nilable(String)
-    const :reasoning_details, T::Array[ReasoningDetail]
+    const :content, T::Array[T.anything]
+    const :reasoning_text, T.nilable(String)
+    const :reasoning, T::Array[ReasoningDetail]
     const :files, T::Array[GeneratedFile]
     const :sources, T::Array[Source]
     const :tool_calls, ToolCallArray
@@ -16,8 +17,6 @@ module Ai
     const :request, LanguageModelRequestMetadata
     const :response, ResponseMetadata
     const :provider_metadata, T.nilable(ProviderMetadata)
-    const :experimental_provider_metadata, T.nilable(ProviderMetadata)
     const :step_type, String # 'initial' | 'continue' | 'tool-result'
-    const :is_continued, T::Boolean
   end
 end
