@@ -205,7 +205,7 @@ RSpec.describe Ai::Agent do
       expect(result).to respond_to(:response)
       expect(result).to respond_to(:logprobs)
       expect(result).to respond_to(:provider_metadata)
-      expect(result).to respond_to(:experimental_provider_metadata)
+      expect(result).to respond_to(:trace_id)
 
       expect(result.object).to be_a(schema)
     end
