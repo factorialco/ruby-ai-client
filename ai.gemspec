@@ -31,5 +31,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'json_schemer', '~> 2.4.0'
   spec.add_dependency 'railties', '>= 7.1.3'
   spec.add_dependency 'sorbet-coerce', '~> 0.7'
-  spec.add_dependency 'sorbet-static-and-runtime', '0.5.12196'
+  spec.add_dependency 'sorbet-static-and-runtime', '0.6.12449'
 end
