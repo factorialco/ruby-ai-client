@@ -27,6 +27,8 @@ module Ai
   autoload :LanguageModelUsage, 'ai/types/language_model_usage'
   autoload :MessageRole, 'ai/types/message_role'
   autoload :Message, 'ai/types/message'
+  autoload :TextPart, 'ai/types/text_part'
+  autoload :ImagePart, 'ai/types/image_part'
   autoload :ReasoningDetail, 'ai/types/reasoning_detail'
   autoload :ResponseMessage, 'ai/types/response_message'
   autoload :ResponseMetadata, 'ai/types/response_metadata'
@@ -55,6 +57,22 @@ module Ai
   sig { params(content: String).returns(Ai::Message) }
   def self.system_message(content)
     Ai::Message.new(role: Ai::MessageRole::System, content: content)
+  end
+
+  sig { params(text: String, image_data: String, media_type: String).returns(Ai::Message) }
+  def self.user_message_with_image(text, image_data, media_type)
+    Ai::Message.new(
+      role: Ai::MessageRole::User,
+      content: [Ai::TextPart.new(text: text), Ai::ImagePart.new(image_data: image_data, media_type: media_type)]
+    )
+  end
+
+  sig { params(text: String, image_url: String, media_type: String).returns(Ai::Message) }
+  def self.user_message_with_image_url(text, image_url, media_type)
+    Ai::Message.new(
+      role: Ai::MessageRole::User,
+      content: [Ai::TextPart.new(text: text), Ai::ImagePart.new(image_url: image_url, media_type: media_type)]
+    )
   end
 
   sig { returns(Ai::Client) }

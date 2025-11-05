@@ -244,7 +244,8 @@ module Ai
 
         # convert to camelCase and unpacking for API compatibility
         camelized_options = deep_camelize_keys(options)
-        request.body = { messages: messages, **camelized_options }.to_json
+        serialized_messages = messages.map(&:as_json)
+        request.body = { messages: serialized_messages, **camelized_options }.to_json
 
         response = http.request(request)
 
