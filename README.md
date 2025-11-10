@@ -89,6 +89,68 @@ messages = [
 ]
 ```
 
+**Sending Images:**
+
+For vision-capable agents, you can include images in your messages:
+
+```ruby
+# Read image from file
+image_data = File.binread('path/to/image.png')
+
+# Create a message with text and image
+message = Ai.user_message_with_image(
+  "What objects are in this image?",
+  image_data,
+  "image/png"
+)
+
+messages = [message]
+```
+
+For multiple images in one message, use manual construction:
+
+```ruby
+image1 = File.binread('photo1.jpg')
+image2 = File.binread('photo2.png')
+
+message = Ai::Message.new(
+  role: Ai::MessageRole::User,
+  content: [
+    Ai::TextPart.new(text: "Compare these images:"),
+    Ai::ImagePart.new(image_data: image1, media_type: "image/jpeg"),
+    Ai::ImagePart.new(image_data: image2, media_type: "image/png")
+  ]
+)
+```
+
+**Using Image URLs:**
+
+Instead of sending image data, you can send a URL for the agent to fetch the image:
+
+```ruby
+# Create a message with text and image URL
+message = Ai.user_message_with_image_url(
+  "What objects are in this image?",
+  "https://example.com/photo.jpg",
+  "image/jpeg"
+)
+
+messages = [message]
+```
+
+For multiple image URLs or mixing URLs with text:
+
+```ruby
+message = Ai::Message.new(
+  role: Ai::MessageRole::User,
+  content: [
+    Ai::TextPart.new(text: "Compare these images from the web:"),
+    Ai::ImagePart.new(image_url: "https://example.com/image1.jpg", media_type: "image/jpeg"),
+    Ai::ImagePart.new(image_url: "https://example.com/image2.png", media_type: "image/png")
+  ]
+)
+```
+
 #### Step 3.3: Call the Agent
 
 ```ruby
