@@ -97,7 +97,8 @@ module Ai
         end
 
         # Step 2: Stream the workflow – we only need to consume the stream so that we know when it finishes
-        stream_url = URI.join(@base_uri, "api/workflows/#{workflow_name}/streamVNext?runId=#{run_id}")
+        stream_url =
+          URI.join(@base_uri, "api/workflows/#{workflow_name}/streamVNext?runId=#{run_id}")
         stream_request_body = { inputData: JSON.parse(input.to_json), runtimeContext: {} }.to_json
         stream_response =
           http_post(stream_url, body: stream_request_body, stream: true) do |response|
@@ -182,9 +183,11 @@ module Ai
 
       sig { returns(Net::HTTP) }
       def http
-        @http ||= T.let(Net::HTTP.new(@base_uri.host, @base_uri.port), T.nilable(Net::HTTP))
-        @http.use_ssl = (@base_uri.scheme == 'https')
-        @http
+        # Create a new connection for each request - thread-safe
+        # This ensures each thread/request gets its own HTTP connection with its own SSL context
+        http_instance = Net::HTTP.new(@base_uri.host, @base_uri.port)
+        http_instance.use_ssl = (@base_uri.scheme == 'https')
+        http_instance
       end
 
       sig { params(options: T::Hash[Symbol, T.anything]).returns(T::Hash[Symbol, T.anything]) }
