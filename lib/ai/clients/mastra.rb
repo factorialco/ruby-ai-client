@@ -30,7 +30,8 @@ module Ai
         request['Origin'] = Ai.config.origin
         request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
 
-        response = build_http.request(request)
+        http = build_http
+        response = http.request(request)
         unless response.is_a?(Net::HTTPSuccess)
           raise Ai::Error, "Mastra error – could not fetch agents: #{response.body}"
         end
@@ -120,7 +121,8 @@ module Ai
           .config
           .api_key
           .present?
-        result_response = build_http.request(result_request)
+        http = build_http
+        result_response = http.request(result_request)
 
         unless result_response.is_a?(Net::HTTPSuccess)
           raise Ai::Error,
@@ -154,7 +156,8 @@ module Ai
         request['Origin'] = Ai.config.origin
         request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
 
-        response = build_http.request(request)
+        http = build_http
+        response = http.request(request)
 
         unless response.is_a?(Net::HTTPSuccess)
           raise Ai::Error, "Mastra error – could not fetch workflow: #{response.body}"
@@ -211,10 +214,11 @@ module Ai
         request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
         request.body = body if body
 
+        http = build_http
         if stream && blk
-          build_http.request(request, &blk)
+          http.request(request, &blk)
         else
-          build_http.request(request)
+          http.request(request)
         end
       rescue Errno::ECONNREFUSED
         raise Ai::Error, "Connection refused when connecting to Mastra service at #{@endpoint}"
@@ -250,7 +254,8 @@ module Ai
         serialized_messages = messages.map(&:as_json)
         request.body = { messages: serialized_messages, **camelized_options }.to_json
 
-        response = build_http.request(request)
+        http = build_http
+        response = http.request(request)
 
         unless response.is_a?(Net::HTTPSuccess)
           error =
