@@ -30,7 +30,7 @@ module Ai
         request['Origin'] = Ai.config.origin
         request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
 
-        response = http.request(request)
+        response = build_http.request(request)
         unless response.is_a?(Net::HTTPSuccess)
           raise Ai::Error, "Mastra error – could not fetch agents: #{response.body}"
         end
@@ -120,7 +120,7 @@ module Ai
           .config
           .api_key
           .present?
-        result_response = http.request(result_request)
+        result_response = build_http.request(result_request)
 
         unless result_response.is_a?(Net::HTTPSuccess)
           raise Ai::Error,
@@ -154,7 +154,7 @@ module Ai
         request['Origin'] = Ai.config.origin
         request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
 
-        response = http.request(request)
+        response = build_http.request(request)
 
         unless response.is_a?(Net::HTTPSuccess)
           raise Ai::Error, "Mastra error – could not fetch workflow: #{response.body}"
@@ -182,7 +182,7 @@ module Ai
       private
 
       sig { returns(Net::HTTP) }
-      def http
+      def build_http
         # Create a new connection for each request - thread-safe
         # This ensures each thread/request gets its own HTTP connection with its own SSL context
         http_instance = Net::HTTP.new(@base_uri.host, @base_uri.port)
@@ -212,9 +212,9 @@ module Ai
         request.body = body if body
 
         if stream && blk
-          http.request(request, &blk)
+          build_http.request(request, &blk)
         else
-          http.request(request)
+          build_http.request(request)
         end
       rescue Errno::ECONNREFUSED
         raise Ai::Error, "Connection refused when connecting to Mastra service at #{@endpoint}"
@@ -250,7 +250,7 @@ module Ai
         serialized_messages = messages.map(&:as_json)
         request.body = { messages: serialized_messages, **camelized_options }.to_json
 
-        response = http.request(request)
+        response = build_http.request(request)
 
         unless response.is_a?(Net::HTTPSuccess)
           error =
