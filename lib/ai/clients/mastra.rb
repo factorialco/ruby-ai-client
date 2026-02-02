@@ -114,7 +114,7 @@ module Ai
 
         # Step 3: Fetch the execution result once the stream completes
         result_url =
-          URI.join(@base_uri, "api/workflows/#{workflow_name}/runs/#{run_id}/execution-result")
+          URI.join(@base_uri, "api/workflows/#{workflow_name}/runs/#{run_id}")
         result_request = Net::HTTP::Get.new(result_url)
         result_request['Origin'] = Ai.config.origin
         result_request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai
