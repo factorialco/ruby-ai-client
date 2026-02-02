@@ -78,7 +78,7 @@ http_interactions:
   recorded_at: Thu, 31 Jul 2025 15:37:12 GMT
 - request:
     method: get
-    uri: https://mastra.local.factorial.dev/api/workflows/testWorkflow/runs/7d583fcb-89c7-4da9-90a1-6274f768247f/execution-result
+    uri: https://mastra.local.factorial.dev/api/workflows/testWorkflow/runs/7d583fcb-89c7-4da9-90a1-6274f768247f
     body:
       encoding: US-ASCII
       string: ''
