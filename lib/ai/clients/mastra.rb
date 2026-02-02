@@ -101,15 +101,21 @@ module Ai
         stream_url =
           URI.join(@base_uri, "api/workflows/#{workflow_name}/stream?runId=#{run_id}")
         stream_request_body = { inputData: JSON.parse(input.to_json), runtimeContext: {} }.to_json
+        stream_error_body = T.let(nil, T.nilable(String))
         stream_response =
           http_post(stream_url, body: stream_request_body, stream: true) do |response|
-            response.read_body do |_chunk|
-              # Intentionally ignore the streaming chunks – we only need to block until the stream ends
+            unless response.is_a?(Net::HTTPSuccess)
+              # Capture the error body before it's consumed
+              stream_error_body = response.body
+            else
+              response.read_body do |_chunk|
+                # Intentionally ignore the streaming chunks – we only need to block until the stream ends
+              end
             end
           end
 
         unless stream_response.is_a?(Net::HTTPSuccess)
-          raise Ai::Error, "Mastra error – streaming workflow failed: #{stream_response.body}"
+          raise Ai::Error, "Mastra error – streaming workflow failed: #{stream_error_body || stream_response.code}"
         end
 
         # Step 3: Fetch the execution result once the stream completes
