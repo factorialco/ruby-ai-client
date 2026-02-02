@@ -99,7 +99,7 @@ module Ai
 
         # Step 2: Stream the workflow – we only need to consume the stream so that we know when it finishes
         stream_url =
-          URI.join(@base_uri, "api/workflows/#{workflow_name}/streamVNext?runId=#{run_id}")
+          URI.join(@base_uri, "api/workflows/#{workflow_name}/stream?runId=#{run_id}")
         stream_request_body = { inputData: JSON.parse(input.to_json), runtimeContext: {} }.to_json
         stream_response =
           http_post(stream_url, body: stream_request_body, stream: true) do |response|

@@ -40,7 +40,7 @@ http_interactions:
   recorded_at: Thu, 31 Jul 2025 15:37:12 GMT
 - request:
     method: post
-    uri: https://mastra.local.factorial.dev/api/workflows/testWorkflow/streamVNext?runId=7d583fcb-89c7-4da9-90a1-6274f768247f
+    uri: https://mastra.local.factorial.dev/api/workflows/testWorkflow/stream?runId=7d583fcb-89c7-4da9-90a1-6274f768247f
     body:
       encoding: UTF-8
       string: '{"inputData":{"first_number":3,"second_number":5},"runtimeContext":{}}'
