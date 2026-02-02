@@ -91,7 +91,7 @@ module Ai
         # Step 1: Create a new run for the workflow
         create_url =
           URI.join(@base_uri, "api/workflows/#{workflow_name}/create-run?runId=#{run_id}")
-        create_response = http_post(create_url)
+        create_response = http_post(create_url, body: '{}')
 
         unless create_response.is_a?(Net::HTTPSuccess)
           raise Ai::Error, "Mastra error – could not create workflow run: #{create_response.body}"
@@ -102,14 +102,16 @@ module Ai
           URI.join(@base_uri, "api/workflows/#{workflow_name}/stream?runId=#{run_id}")
         stream_request_body = { inputData: JSON.parse(input.to_json), runtimeContext: {} }.to_json
         stream_error_body = T.let(nil, T.nilable(String))
+        stream_body_chunks = T.let([], T::Array[String])
         stream_response =
           http_post(stream_url, body: stream_request_body, stream: true) do |response|
             unless response.is_a?(Net::HTTPSuccess)
               # Capture the error body before it's consumed
               stream_error_body = response.body
             else
-              response.read_body do |_chunk|
-                # Intentionally ignore the streaming chunks – we only need to block until the stream ends
+              response.read_body do |chunk|
+                # Capture the stream body to check for workflow failures
+                stream_body_chunks << chunk
               end
             end
           end
@@ -118,24 +120,56 @@ module Ai
           raise Ai::Error, "Mastra error – streaming workflow failed: #{stream_error_body || stream_response.code}"
         end
 
-        # Step 3: Fetch the execution result once the stream completes
-        result_url =
-          URI.join(@base_uri, "api/workflows/#{workflow_name}/runs/#{run_id}")
-        result_request = Net::HTTP::Get.new(result_url)
-        result_request['Origin'] = Ai.config.origin
-        result_request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai
-          .config
-          .api_key
-          .present?
-        http = build_http
-        result_response = http.request(result_request)
-
-        unless result_response.is_a?(Net::HTTPSuccess)
-          raise Ai::Error,
-                "Mastra error – could not fetch execution result: #{result_response.body}"
+        # Check if the workflow failed during streaming (Mastra doesn't always update run status)
+        stream_body = stream_body_chunks.join
+        if stream_body.include?('"workflowStatus":"failed"')
+          # Extract error message from stream
+          error_match = stream_body.match(/"errorMessage":"([^"]*)"/)
+          error_message = error_match ? error_match[1] : 'Unknown workflow error'
+          raise Ai::Error, "Mastra error – workflow failed: #{error_message}"
         end
 
-        JSON.parse(result_response.body || '')['result']
+        # Step 3: Fetch the execution result once the stream completes (with retry for pending status)
+        result_url =
+          URI.join(@base_uri, "api/workflows/#{workflow_name}/runs/#{run_id}")
+
+        max_retries = 10
+        retry_delay = 0.5 # seconds
+        run_data = T.let({}, T::Hash[String, T.untyped])
+
+        max_retries.times do |attempt|
+          result_request = Net::HTTP::Get.new(result_url)
+          result_request['Origin'] = Ai.config.origin
+          result_request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai
+            .config
+            .api_key
+            .present?
+          http = build_http
+          result_response = http.request(result_request)
+
+          unless result_response.is_a?(Net::HTTPSuccess)
+            raise Ai::Error,
+                  "Mastra error – could not fetch execution result: #{result_response.body}"
+          end
+
+          run_data = JSON.parse(result_response.body || '{}')
+          status = run_data['status']
+
+          break if status != 'pending'
+
+          # Wait and retry if still pending
+          sleep(retry_delay) if attempt < max_retries - 1
+        end
+
+        status = run_data['status']
+        unless status == 'success'
+          # Try to extract error details from the run data
+          error_details = run_data.dig('steps')&.values&.find { |s| s['status'] == 'failed' }&.dig('error')
+          error_message = error_details || "Workflow finished with status: #{status}"
+          raise Ai::Error, "Mastra error – workflow failed: #{error_message}"
+        end
+
+        run_data['result']
       rescue Errno::ECONNREFUSED
         raise Ai::Error, "Connection refused when connecting to Mastra service at #{@endpoint}"
       rescue Errno::EHOSTUNREACH
@@ -215,10 +249,12 @@ module Ai
       end
       def http_post(url, body: nil, stream: false, &blk)
         request = Net::HTTP::Post.new(url)
-        request['Content-Type'] = 'application/json'
         request['Origin'] = Ai.config.origin
         request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
-        request.body = body if body
+        if body
+          request['Content-Type'] = 'application/json'
+          request.body = body
+        end
 
         http = build_http
         if stream && blk
