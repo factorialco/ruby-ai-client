@@ -105,14 +105,14 @@ module Ai
         stream_body_chunks = T.let([], T::Array[String])
         stream_response =
           http_post(stream_url, body: stream_request_body, stream: true) do |response|
-            unless response.is_a?(Net::HTTPSuccess)
-              # Capture the error body before it's consumed
-              stream_error_body = response.body
-            else
+            if response.is_a?(Net::HTTPSuccess)
               response.read_body do |chunk|
                 # Capture the stream body to check for workflow failures
                 stream_body_chunks << chunk
               end
+            else
+              # Capture the error body before it's consumed
+              stream_error_body = response.body
             end
           end
 
@@ -135,7 +135,7 @@ module Ai
 
         max_retries = 10
         retry_delay = 0.5 # seconds
-        run_data = T.let({}, T::Hash[String, T.untyped])
+        run_data = T.let({}, T::Hash[String, T.anything])
 
         max_retries.times do |attempt|
           result_request = Net::HTTP::Get.new(result_url)
@@ -164,7 +164,7 @@ module Ai
         status = run_data['status']
         unless status == 'success'
           # Try to extract error details from the run data
-          error_details = run_data.dig('steps')&.values&.find { |s| s['status'] == 'failed' }&.dig('error')
+          error_details = run_data['steps']&.values&.find { |s| s['status'] == 'failed' }&.dig('error')
           error_message = error_details || "Workflow finished with status: #{status}"
           raise Ai::Error, "Mastra error – workflow failed: #{error_message}"
         end
