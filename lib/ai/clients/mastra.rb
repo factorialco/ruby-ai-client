@@ -287,7 +287,7 @@ module Ai
       end
       def response(url:, messages:, options:)
         request = Net::HTTP::Post.new(url)
-        request['Content-Type'] = 'text/plain;charset=UTF-8'
+        request['Content-Type'] = 'application/json'
         request['Origin'] = Ai.config.origin
         request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
 
