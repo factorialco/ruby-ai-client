@@ -60,13 +60,14 @@ module Ai
           .params(
             agent_name: String,
             messages: T::Array[Ai::Message],
-            options: T::Hash[Symbol, T.anything]
+            options: T::Hash[Symbol, T.anything],
+            delegated_token: T.nilable(String)
           )
           .returns(T::Hash[String, T.anything])
       end
-      def generate(agent_name, messages:, options: {})
+      def generate(agent_name, messages:, options: {}, delegated_token: nil)
         url = URI.join(@base_uri, "api/agents/#{agent_name}/generate")
-        generated_response = response(url: url, messages: messages, options: options)
+        generated_response = response(url: url, messages: messages, options: options, delegated_token: delegated_token)
 
         parsed_response =
           JSON.parse(generated_response.body || '').deep_transform_keys(&:underscore)
@@ -83,15 +84,15 @@ module Ai
       end
 
       sig do
-        override.params(workflow_name: String, input: T::Struct).returns(Ai::Client::ApiResponse)
+        override.params(workflow_name: String, input: T::Struct, delegated_token: T.nilable(String)).returns(Ai::Client::ApiResponse)
       end
-      def run_workflow(workflow_name, input:)
+      def run_workflow(workflow_name, input:, delegated_token: nil)
         run_id = SecureRandom.uuid
 
         # Step 1: Create a new run for the workflow
         create_url =
           URI.join(@base_uri, "api/workflows/#{workflow_name}/create-run?runId=#{run_id}")
-        create_response = http_post(create_url, body: '{}')
+        create_response = http_post(create_url, body: '{}', delegated_token: delegated_token)
 
         unless create_response.is_a?(Net::HTTPSuccess)
           raise Ai::Error, "Mastra error – could not create workflow run: #{create_response.body}"
@@ -104,7 +105,7 @@ module Ai
         stream_error_body = T.let(nil, T.nilable(String))
         stream_body_chunks = T.let([], T::Array[String])
         stream_response =
-          http_post(stream_url, body: stream_request_body, stream: true) do |response|
+          http_post(stream_url, body: stream_request_body, stream: true, delegated_token: delegated_token) do |response|
             if response.is_a?(Net::HTTPSuccess)
               response.read_body do |chunk|
                 # Capture the stream body to check for workflow failures
@@ -144,6 +145,7 @@ module Ai
             .config
             .api_key
             .present?
+          result_request['X-Factorial-Delegated-Bearer'] = delegated_token if delegated_token.present?
           http = build_http
           result_response = http.request(result_request)
 
@@ -244,13 +246,15 @@ module Ai
           url: URI::Generic,
           body: T.nilable(String),
           stream: T::Boolean,
+          delegated_token: T.nilable(String),
           blk: T.nilable(T.proc.params(response: Net::HTTPResponse).void)
         ).returns(Net::HTTPResponse)
       end
-      def http_post(url, body: nil, stream: false, &blk)
+      def http_post(url, body: nil, stream: false, delegated_token: nil, &blk)
         request = Net::HTTP::Post.new(url)
         request['Origin'] = Ai.config.origin
         request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
+        request['X-Factorial-Delegated-Bearer'] = delegated_token if delegated_token.present?
         if body
           request['Content-Type'] = 'application/json'
           request.body = body
@@ -282,14 +286,16 @@ module Ai
         params(
           url: URI::Generic,
           messages: T::Array[Ai::Message],
-          options: T::Hash[Symbol, T.anything]
+          options: T::Hash[Symbol, T.anything],
+          delegated_token: T.nilable(String)
         ).returns(Net::HTTPResponse)
       end
-      def response(url:, messages:, options:)
+      def response(url:, messages:, options:, delegated_token: nil)
         request = Net::HTTP::Post.new(url)
         request['Content-Type'] = 'application/json'
         request['Origin'] = Ai.config.origin
         request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
+        request['X-Factorial-Delegated-Bearer'] = delegated_token if delegated_token.present?
 
         # convert to camelCase and unpacking for API compatibility
         camelized_options = deep_camelize_keys(options)
