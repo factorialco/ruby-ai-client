@@ -30,11 +30,12 @@ module Ai
           .params(
             agent_name: String,
             messages: T::Array[Ai::Message],
-            options: T::Hash[Symbol, T.anything]
+            options: T::Hash[Symbol, T.anything],
+            delegated_token: T.nilable(String)
           )
           .returns(T::Hash[String, T.anything])
       end
-      def generate(agent_name, messages:, options: {})
+      def generate(agent_name, messages:, options: {}, delegated_token: nil)
         output = options[:structured_output]
 
         # Use the first message content for testing purposes
@@ -101,9 +102,9 @@ module Ai
       end
 
       sig do
-        override.params(workflow_name: String, input: T::Struct).returns(Ai::Client::ApiResponse)
+        override.params(workflow_name: String, input: T::Struct, delegated_token: T.nilable(String)).returns(Ai::Client::ApiResponse)
       end
-      def run_workflow(workflow_name, input:)
+      def run_workflow(workflow_name, input:, delegated_token: nil)
         @returned_object
       end
 
