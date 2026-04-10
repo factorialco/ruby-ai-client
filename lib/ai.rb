@@ -47,7 +47,7 @@ module Ai
   LogProbs = T.type_alias { T.anything }
   ProviderMetadata = T.type_alias { T.anything }
 
-  config_accessor :origin, :client, :api_key
+  config_accessor :origin, :client, :api_key, :delegated_token_resolver
 
   sig { params(content: String).returns(Ai::Message) }
   def self.user_message(content)
