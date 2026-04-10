@@ -117,15 +117,17 @@ RSpec.describe Ai::Agent do
     end
 
     describe 'delegated_auth' do
+      after { Ai.delegated_token_resolver = nil }
+
       it 'resolves delegated_auth to a token via the configured resolver and passes it to the client' do
-        principal = double('Company')
+        principal = instance_double(Object)
         Ai.delegated_token_resolver = ->(p) { "resolved-token-for-#{p.class.name}" }
 
         expect(client).to receive(:generate).with(
           'test',
           messages: anything,
           options: anything,
-          delegated_token: 'resolved-token-for-RSpec::Mocks::Double'
+          delegated_token: "resolved-token-for-#{principal.class.name}"
         ).and_call_original
 
         agent.generate_text(messages: [Ai.user_message('Hello')], delegated_auth: principal)
@@ -147,12 +149,10 @@ RSpec.describe Ai::Agent do
       it 'raises Ai::Error when resolver is not configured but delegated_auth is provided' do
         Ai.delegated_token_resolver = nil
 
-        expect {
-          agent.generate_text(messages: [Ai.user_message('Hello')], delegated_auth: double('Access'))
-        }.to raise_error(Ai::Error, /delegated_token_resolver is not configured/)
+        expect do
+          agent.generate_text(messages: [Ai.user_message('Hello')], delegated_auth: instance_double(Object))
+        end.to raise_error(Ai::Error, /delegated_token_resolver is not configured/)
       end
-
-      after { Ai.delegated_token_resolver = nil }
     end
   end
 
@@ -264,6 +264,8 @@ RSpec.describe Ai::Agent do
     end
 
     describe 'delegated_auth' do
+      after { Ai.delegated_token_resolver = nil }
+
       before { client.set_returned_object({ 'name' => 'John Doe', 'age' => 30 }) }
 
       let(:schema) do
@@ -274,7 +276,7 @@ RSpec.describe Ai::Agent do
       end
 
       it 'resolves delegated_auth and passes delegated_token to the client' do
-        principal = double('Company')
+        principal = instance_double(Object)
         Ai.delegated_token_resolver = ->(_p) { 'company-token-abc' }
 
         expect(client).to receive(:generate).with(
@@ -290,8 +292,6 @@ RSpec.describe Ai::Agent do
           delegated_auth: principal
         )
       end
-
-      after { Ai.delegated_token_resolver = nil }
     end
   end
 end
