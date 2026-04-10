@@ -28,7 +28,8 @@ RSpec.describe Ai::Agent do
           max_retries: 2,
           max_steps: 5,
           telemetry: anything
-        }
+        },
+        delegated_token: nil
       ).and_call_original
 
       agent.generate_text(messages: [Ai.user_message('Hello')], runtime_context: runtime_context)
@@ -44,7 +45,8 @@ RSpec.describe Ai::Agent do
           max_retries: 5,
           max_steps: 10,
           telemetry: anything
-        }
+        },
+        delegated_token: nil
       ).and_call_original
 
       agent.generate_text(messages: [Ai.user_message('Hello')], max_retries: 5, max_steps: 10)
@@ -71,7 +73,8 @@ RSpec.describe Ai::Agent do
           max_retries: 2,
           max_steps: 5,
           telemetry: telemetry_settings
-        }
+        },
+        delegated_token: nil
       ).and_call_original
 
       agent.generate_text(messages: [Ai.user_message('Hello')], telemetry: telemetry_settings)
@@ -87,7 +90,8 @@ RSpec.describe Ai::Agent do
           max_retries: 2,
           max_steps: 5,
           telemetry: kind_of(Ai::TelemetrySettings)
-        }
+        },
+        delegated_token: nil
       ).and_call_original
 
       result = agent.generate_text(messages: [Ai.user_message('Hello')])
@@ -110,6 +114,45 @@ RSpec.describe Ai::Agent do
       expect(result.tool_calls).to eq([])
       expect(result.tool_results).to eq([])
       expect(result.steps).to eq([])
+    end
+
+    describe 'delegated_auth' do
+      it 'resolves delegated_auth to a token via the configured resolver and passes it to the client' do
+        principal = double('Company')
+        Ai.delegated_token_resolver = ->(p) { "resolved-token-for-#{p.class.name}" }
+
+        expect(client).to receive(:generate).with(
+          'test',
+          messages: anything,
+          options: anything,
+          delegated_token: 'resolved-token-for-RSpec::Mocks::Double'
+        ).and_call_original
+
+        agent.generate_text(messages: [Ai.user_message('Hello')], delegated_auth: principal)
+      end
+
+      it 'passes nil delegated_token when delegated_auth is nil' do
+        Ai.delegated_token_resolver = ->(_p) { raise 'should not be called' }
+
+        expect(client).to receive(:generate).with(
+          'test',
+          messages: anything,
+          options: anything,
+          delegated_token: nil
+        ).and_call_original
+
+        agent.generate_text(messages: [Ai.user_message('Hello')])
+      end
+
+      it 'raises Ai::Error when resolver is not configured but delegated_auth is provided' do
+        Ai.delegated_token_resolver = nil
+
+        expect {
+          agent.generate_text(messages: [Ai.user_message('Hello')], delegated_auth: double('Access'))
+        }.to raise_error(Ai::Error, /delegated_token_resolver is not configured/)
+      end
+
+      after { Ai.delegated_token_resolver = nil }
     end
   end
 
@@ -153,7 +196,8 @@ RSpec.describe Ai::Agent do
             max_steps: 8,
             structured_output: hash_including(schema: anything),
             telemetry: anything
-          )
+          ),
+        delegated_token: nil
       ).and_call_original
 
       agent.generate_object(
@@ -184,7 +228,8 @@ RSpec.describe Ai::Agent do
           hash_including(
             telemetry: telemetry_settings,
             structured_output: hash_including(schema: anything)
-          )
+          ),
+        delegated_token: nil
       ).and_call_original
 
       agent.generate_object(
@@ -216,6 +261,37 @@ RSpec.describe Ai::Agent do
       it 'handles type coercion correctly' do
         expect { subject }.to raise_error(ArgumentError)
       end
+    end
+
+    describe 'delegated_auth' do
+      before { client.set_returned_object({ 'name' => 'John Doe', 'age' => 30 }) }
+
+      let(:schema) do
+        Class.new(T::Struct) do
+          const :name, String
+          const :age, Integer
+        end
+      end
+
+      it 'resolves delegated_auth and passes delegated_token to the client' do
+        principal = double('Company')
+        Ai.delegated_token_resolver = ->(_p) { 'company-token-abc' }
+
+        expect(client).to receive(:generate).with(
+          'test',
+          messages: anything,
+          options: anything,
+          delegated_token: 'company-token-abc'
+        ).and_call_original
+
+        agent.generate_object(
+          messages: [Ai.user_message('Create person')],
+          output_class: schema,
+          delegated_auth: principal
+        )
+      end
+
+      after { Ai.delegated_token_resolver = nil }
     end
   end
 end

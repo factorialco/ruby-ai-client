@@ -23,7 +23,7 @@ module Ai
         max_retries: Integer,
         max_steps: Integer,
         telemetry: Ai::TelemetrySettings,
-        delegated_token: T.nilable(String)
+        delegated_auth: T.untyped
       ).returns(Ai::GenerateTextResult)
     end
     def generate_text(
@@ -32,7 +32,7 @@ module Ai
       max_retries: 2,
       max_steps: 5,
       telemetry: Ai::TelemetrySettings.new,
-      delegated_token: nil
+      delegated_auth: nil
     )
       options = {
         runtime_context: runtime_context,
@@ -41,6 +41,7 @@ module Ai
         telemetry: telemetry
       }
 
+      delegated_token = resolve_delegated_token(delegated_auth)
       data = client.generate(agent_name, messages: messages, options: options, delegated_token: delegated_token)
       TypeCoerce[Ai::GenerateTextResult].new.from(data, raise_coercion_error: false)
     end
@@ -54,7 +55,7 @@ module Ai
           max_retries: Integer,
           max_steps: Integer,
           telemetry: Ai::TelemetrySettings,
-          delegated_token: T.nilable(String)
+          delegated_auth: T.untyped
         )
         .returns(GenerateObjectResult[T.type_parameter(:O)])
     end
@@ -65,7 +66,7 @@ module Ai
       max_retries: 2,
       max_steps: 5,
       telemetry: Ai::TelemetrySettings.new,
-      delegated_token: nil
+      delegated_auth: nil
     )
       schema = Ai::StructToJsonSchema.convert(T.cast(output_class, T.class_of(T::Struct)))
 
@@ -79,6 +80,7 @@ module Ai
         telemetry: telemetry
       }
 
+      delegated_token = resolve_delegated_token(delegated_auth)
       data = client.generate(agent_name, messages: messages, options: options, delegated_token: delegated_token)
 
       object = TypeCoerce[output_class].from(data['object'])
@@ -86,6 +88,18 @@ module Ai
         .new
         .from(data, raise_coercion_error: false)
         .with(object: object)
+    end
+
+    private
+
+    sig { params(delegated_auth: T.untyped).returns(T.nilable(String)) }
+    def resolve_delegated_token(delegated_auth)
+      return nil if delegated_auth.nil?
+
+      resolver = Ai.config.delegated_token_resolver
+      raise Ai::Error, 'delegated_token_resolver is not configured. Set Ai.delegated_token_resolver in your initializer.' if resolver.nil?
+
+      resolver.call(delegated_auth)
     end
   end
 end
