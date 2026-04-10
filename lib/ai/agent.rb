@@ -23,7 +23,7 @@ module Ai
         max_retries: Integer,
         max_steps: Integer,
         telemetry: Ai::TelemetrySettings,
-        delegated_auth: T.nilable(T.anything)
+        delegated_auth: T.nilable(Object)
       ).returns(Ai::GenerateTextResult)
     end
     def generate_text(
@@ -55,7 +55,7 @@ module Ai
           max_retries: Integer,
           max_steps: Integer,
           telemetry: Ai::TelemetrySettings,
-          delegated_auth: T.nilable(T.anything)
+          delegated_auth: T.nilable(Object)
         )
         .returns(GenerateObjectResult[T.type_parameter(:O)])
     end
@@ -92,7 +92,7 @@ module Ai
 
     private
 
-    sig { params(delegated_auth: T.nilable(T.anything)).returns(T.nilable(String)) }
+    sig { params(delegated_auth: T.nilable(Object)).returns(T.nilable(String)) }
     def resolve_delegated_token(delegated_auth)
       return nil if delegated_auth.nil?
 
