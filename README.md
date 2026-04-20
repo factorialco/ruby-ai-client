@@ -172,7 +172,7 @@ agent = Ai::Agent.new(agent_name: 'my_agent', client: Ai::Client.new)
 result = agent.generate_object(
   messages: messages,
   output_class: Output,
-  runtime_context: { user_id: 123, session: 'abc' },  # Optional context
+  request_context: { user_id: 123, session: 'abc' },  # Optional context
   max_retries: 3,                                     # Retry attempts (default: 2)
   max_steps: 10                                       # Max processing steps (default: 5)
 )
@@ -189,7 +189,7 @@ agent = Ai::Agent.new(agent_name: 'my_agent', client: Ai::Client.new)
 
 result = agent.generate_text(
   messages: messages,
-  runtime_context: {},  # Optional context
+  request_context: {},  # Optional context
   max_retries: 2,       # Retry attempts (default: 2)
   max_steps: 5          # Max processing steps (default: 5)
 )

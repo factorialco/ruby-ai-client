@@ -33,16 +33,16 @@ class MyAiMagicProcess
     sig do
       params(
         message: Ai::Message,
-        runtime_context: T::Hash[String, T.anything],
+        request_context: T::Hash[String, T.anything],
         max_retries: Integer,
         max_steps: Integer
       ).returns(Ai::GenerateTextResult)
     end
-    def self.generate_text(message:, runtime_context: {}, max_retries: 2, max_steps: 5)
+    def self.generate_text(message:, request_context: {}, max_retries: 2, max_steps: 5)
       Ai::Agent.generate_text(
         agent_name,
         message: message,
-        runtime_context: runtime_context,
+        request_context: request_context,
         max_retries: max_retries,
         max_steps: max_steps
       )
@@ -57,10 +57,10 @@ class MyAiMagicProcess
   def call
     message = Ai.user_message('hello')
 
-    response = MyAgent[Output].generate_object(message: message, runtime_context: {})
+    response = MyAgent[Output].generate_object(message: message, request_context: {})
     response.object.response
 
-    other_response = MyAgent.generate_text(message: message, runtime_context: {})
+    other_response = MyAgent.generate_text(message: message, request_context: {})
     other_response.text
   end
 end

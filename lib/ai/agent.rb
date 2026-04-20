@@ -19,7 +19,7 @@ module Ai
     sig do
       params(
         messages: T::Array[Ai::Message],
-        runtime_context: T::Hash[String, T.anything],
+        request_context: T::Hash[String, T.anything],
         max_retries: Integer,
         max_steps: Integer,
         telemetry: Ai::TelemetrySettings
@@ -27,13 +27,13 @@ module Ai
     end
     def generate_text(
       messages:,
-      runtime_context: {},
+      request_context: {},
       max_retries: 2,
       max_steps: 5,
       telemetry: Ai::TelemetrySettings.new
     )
       options = {
-        runtime_context: runtime_context,
+        request_context: request_context,
         max_retries: max_retries,
         max_steps: max_steps,
         telemetry: telemetry
@@ -48,7 +48,7 @@ module Ai
         .params(
           messages: T::Array[Ai::Message],
           output_class: T.all(T::Class[T.type_parameter(:O)], T::Class[T::Struct]),
-          runtime_context: T::Hash[String, T.anything],
+          request_context: T::Hash[String, T.anything],
           max_retries: Integer,
           max_steps: Integer,
           telemetry: Ai::TelemetrySettings
@@ -58,7 +58,7 @@ module Ai
     def generate_object(
       messages:,
       output_class:,
-      runtime_context: {},
+      request_context: {},
       max_retries: 2,
       max_steps: 5,
       telemetry: Ai::TelemetrySettings.new
@@ -66,7 +66,7 @@ module Ai
       schema = Ai::StructToJsonSchema.convert(T.cast(output_class, T.class_of(T::Struct)))
 
       options = {
-        runtime_context: runtime_context,
+        request_context: request_context,
         max_retries: max_retries,
         max_steps: max_steps,
         structured_output: {

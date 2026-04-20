@@ -17,21 +17,21 @@ RSpec.describe Ai::Agent do
       expect(result.usage.total_tokens).to eq(11)
     end
 
-    it 'passes runtime_context to the client' do
-      runtime_context = { 'user_id' => '123', 'session_id' => 'abc' }
+    it 'passes request_context to the client' do
+      request_context = { 'user_id' => '123', 'session_id' => 'abc' }
 
       expect(client).to receive(:generate).with(
         'test',
         messages: anything,
         options: {
-          runtime_context: runtime_context,
+          request_context: request_context,
           max_retries: 2,
           max_steps: 5,
           telemetry: anything
         }
       ).and_call_original
 
-      agent.generate_text(messages: [Ai.user_message('Hello')], runtime_context: runtime_context)
+      agent.generate_text(messages: [Ai.user_message('Hello')], request_context: request_context)
     end
 
     it 'passes custom max_retries and max_steps to client' do
@@ -39,7 +39,7 @@ RSpec.describe Ai::Agent do
         'test',
         messages: anything,
         options: {
-          runtime_context: {
+          request_context: {
           },
           max_retries: 5,
           max_steps: 10,
@@ -66,7 +66,7 @@ RSpec.describe Ai::Agent do
         'test',
         messages: anything,
         options: {
-          runtime_context: {
+          request_context: {
           },
           max_retries: 2,
           max_steps: 5,
@@ -82,7 +82,7 @@ RSpec.describe Ai::Agent do
         'test',
         messages: anything,
         options: {
-          runtime_context: {
+          request_context: {
           },
           max_retries: 2,
           max_steps: 5,
@@ -140,15 +140,15 @@ RSpec.describe Ai::Agent do
       expect(result.usage.cached_input_tokens).to be_nil
     end
 
-    it 'passes runtime_context and options to client' do
-      runtime_context = { 'user_id' => '456', 'context' => 'test' }
+    it 'passes request_context and options to client' do
+      request_context = { 'user_id' => '456', 'context' => 'test' }
 
       expect(client).to receive(:generate).with(
         'test',
         messages: anything,
         options:
           hash_including(
-            runtime_context: runtime_context,
+            request_context: request_context,
             max_retries: 3,
             max_steps: 8,
             structured_output: hash_including(schema: anything),
@@ -159,7 +159,7 @@ RSpec.describe Ai::Agent do
       agent.generate_object(
         messages: [Ai.user_message('Create person')],
         output_class: schema,
-        runtime_context: runtime_context,
+        request_context: request_context,
         max_retries: 3,
         max_steps: 8
       )
