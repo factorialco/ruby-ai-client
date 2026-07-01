@@ -125,6 +125,95 @@ RSpec.describe Ai::Clients::Mastra do
     end
   end
 
+  describe '#deep_camelize_keys' do
+    # Regression: `deep_camelize_keys` used to camelize property KEYS but leave the
+    # string VALUES in JSON-schema `required` arrays snake_case, producing a schema
+    # that OpenAI's strict structured outputs reject. `required` must list every key
+    # in `properties`, so it has to be camelized alongside them.
+
+    it 'camelizes `required` values to match the camelized property keys (flat)' do
+      options = {
+        structured_output: {
+          schema: {
+            type: 'object',
+            properties: {
+              matches: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    transaction_id: { type: 'integer' },
+                    category_id: { 'anyOf' => [{ type: 'integer' }, { type: 'null' }] }
+                  },
+                  required: %w[transaction_id category_id],
+                  additionalProperties: false
+                }
+              }
+            },
+            required: ['matches'],
+            additionalProperties: false
+          }
+        }
+      }
+
+      items =
+        client.send(:deep_camelize_keys, options).dig(
+          :structuredOutput,
+          :schema,
+          :properties,
+          :matches,
+          :items
+        )
+
+      aggregate_failures do
+        expect(items[:properties].keys).to contain_exactly(:transactionId, :categoryId)
+        expect(items[:required]).to eq(%w[transactionId categoryId])
+      end
+    end
+
+    it 'camelizes `required` inside nested nilable (anyOf) schemas' do
+      options = {
+        structured_output: {
+          schema: {
+            type: 'object',
+            properties: {
+              payment_details: {
+                'anyOf' => [
+                  {
+                    type: 'object',
+                    properties: {
+                      account_number: { 'anyOf' => [{ type: 'string' }, { type: 'null' }] }
+                    },
+                    required: %w[account_number],
+                    additionalProperties: false
+                  },
+                  { type: 'null' }
+                ]
+              }
+            },
+            required: %w[payment_details],
+            additionalProperties: false
+          }
+        }
+      }
+
+      object_branch =
+        client.send(:deep_camelize_keys, options).dig(
+          :structuredOutput,
+          :schema,
+          :properties,
+          :paymentDetails,
+          :anyOf,
+          0
+        )
+
+      aggregate_failures do
+        expect(object_branch[:properties].keys).to contain_exactly(:accountNumber)
+        expect(object_branch[:required]).to eq(%w[accountNumber])
+      end
+    end
+  end
+
   describe '#run_workflow' do
     let(:workflow_name) { 'testWorkflow' }
     let(:input) do
