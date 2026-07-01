@@ -236,7 +236,26 @@ module Ai
       sig { params(options: T::Hash[Symbol, T.anything]).returns(T::Hash[Symbol, T.anything]) }
       def deep_camelize_keys(options)
         json_options = JSON.parse(options.to_json)
-        json_options.deep_transform_keys { |key| key.to_s.camelize(:lower).to_sym }
+        camelized = json_options.deep_transform_keys { |key| key.to_s.camelize(:lower).to_sym }
+        # `deep_transform_keys` camelizes hash KEYS but not the string VALUES held
+        # in JSON-schema `required` arrays. That leaves `properties` in camelCase
+        # while `required` stays snake_case — a mismatch OpenAI's strict structured
+        # outputs reject ("`required` ... must be an array including every key in
+        # properties"). Align every `required` array with the camelized keys.
+        camelize_schema_required!(camelized)
+        camelized
+      end
+
+      sig { params(node: T.anything).void }
+      def camelize_schema_required!(node)
+        case node
+        when Hash
+          required = node[:required]
+          node[:required] = required.map { |key| key.to_s.camelize(:lower) } if required.is_a?(Array)
+          node.each_value { |value| camelize_schema_required!(value) }
+        when Array
+          node.each { |value| camelize_schema_required!(value) }
+        end
       end
 
       sig do
