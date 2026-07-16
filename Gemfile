@@ -12,7 +12,6 @@ gem 'railties'
 gem 'json_schemer', '~> 2.4'
 gem 'sorbet', '0.5.12196'
 gem 'sorbet-coerce', '~> 0.7'
-gem 'sorbet-static-and-runtime', '0.5.12196'
 
 group :development, :test do
   gem 'rspec'
@@ -25,6 +24,7 @@ group :development, :test do
   gem 'vcr', '~> 6.0'
   gem 'webmock', '~> 3.0'
   gem 'tapioca', '~> 0.17.7', require: false
+  gem 'sorbet-static-and-runtime', '0.5.12196'
   gem 'syntax_tree', '~> 6.2', require: false
   gem 'prettier', '~> 3.2.2'
   gem 'ruby_parser'
