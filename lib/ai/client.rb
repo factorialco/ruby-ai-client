@@ -32,15 +32,16 @@ module Ai
         .params(
           agent_name: String,
           messages: T::Array[Ai::Message],
-          options: T::Hash[Symbol, T.anything]
+          options: T::Hash[Symbol, T.anything],
+          delegated_token: T.nilable(String)
         )
         .returns(T::Hash[String, T.anything])
     end
-    def generate(agent_name, messages:, options: {})
+    def generate(agent_name, messages:, options: {}, delegated_token: nil)
     end
 
-    sig { abstract.params(workflow_name: String, input: T::Struct).returns(ApiResponse) }
-    def run_workflow(workflow_name, input:)
+    sig { abstract.params(workflow_name: String, input: T::Struct, delegated_token: T.nilable(String)).returns(ApiResponse) }
+    def run_workflow(workflow_name, input:, delegated_token: nil)
     end
 
     sig { abstract.params(workflow_name: String).returns(SchemaHash) }

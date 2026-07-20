@@ -123,6 +123,51 @@ RSpec.describe Ai::Clients::Mastra do
 
       expect(stub).to have_been_requested
     end
+
+    it 'sends X-Factorial-Delegated-Bearer header when delegated_token is provided' do
+      delegated_token = 'delegated-jwt-token-abc123'
+
+      stub =
+        stub_request(:post, 'https://mastra.local.factorial.dev/api/agents/marvin/generate')
+          .with do |req|
+            req.headers['X-Factorial-Delegated-Bearer'] == delegated_token
+          end
+          .to_return(
+            status: 200,
+            body: { text: 'Test response' }.to_json,
+            headers: { 'Content-Type' => 'application/json' }
+          )
+
+      client.generate(
+        'marvin',
+        messages: [Ai.user_message('test')],
+        options: {},
+        delegated_token: delegated_token
+      )
+
+      expect(stub).to have_been_requested
+    end
+
+    it 'does not send X-Factorial-Delegated-Bearer header when delegated_token is not provided' do
+      stub =
+        stub_request(:post, 'https://mastra.local.factorial.dev/api/agents/marvin/generate')
+          .with do |req|
+            !req.headers.key?('X-Factorial-Delegated-Bearer')
+          end
+          .to_return(
+            status: 200,
+            body: { text: 'Test response' }.to_json,
+            headers: { 'Content-Type' => 'application/json' }
+          )
+
+      client.generate(
+        'marvin',
+        messages: [Ai.user_message('test')],
+        options: {}
+      )
+
+      expect(stub).to have_been_requested
+    end
   end
 
   describe '#deep_camelize_keys' do
@@ -232,6 +277,40 @@ RSpec.describe Ai::Clients::Mastra do
 
         expect(result).to eq('sumOfNumbers' => 8)
       end
+    end
+
+    it 'sends X-Factorial-Delegated-Bearer header on all requests when delegated_token is provided' do
+      delegated_token = 'delegated-jwt-token-workflow'
+
+      input = Class.new(T::Struct) { const :value, Integer }.new(value: 1)
+
+      # Stub create-run
+      create_stub =
+        stub_request(:post, %r{mastra\.local\.factorial\.dev/api/workflows/#{workflow_name}/create-run})
+          .with { |req| req.headers['X-Factorial-Delegated-Bearer'] == delegated_token }
+          .to_return(status: 200, body: '{}')
+
+      # Stub stream
+      stream_stub =
+        stub_request(:post, %r{mastra\.local\.factorial\.dev/api/workflows/#{workflow_name}/stream})
+          .with { |req| req.headers['X-Factorial-Delegated-Bearer'] == delegated_token }
+          .to_return(status: 200, body: '{"workflowStatus":"success"}')
+
+      # Stub result fetch
+      result_stub =
+        stub_request(:get, %r{mastra\.local\.factorial\.dev/api/workflows/#{workflow_name}/runs/})
+          .with { |req| req.headers['X-Factorial-Delegated-Bearer'] == delegated_token }
+          .to_return(
+            status: 200,
+            body: { status: 'success', result: { output: 'done' } }.to_json,
+            headers: { 'Content-Type' => 'application/json' }
+          )
+
+      client.run_workflow(workflow_name, input: input, delegated_token: delegated_token)
+
+      expect(create_stub).to have_been_requested
+      expect(stream_stub).to have_been_requested
+      expect(result_stub).to have_been_requested
     end
   end
 end
