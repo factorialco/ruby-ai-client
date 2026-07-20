@@ -22,7 +22,8 @@ module Ai
         request_context: T::Hash[String, T.anything],
         max_retries: Integer,
         max_steps: Integer,
-        telemetry: Ai::TelemetrySettings
+        telemetry: Ai::TelemetrySettings,
+        headers: T::Hash[String, String]
       ).returns(Ai::GenerateTextResult)
     end
     def generate_text(
@@ -30,7 +31,8 @@ module Ai
       request_context: {},
       max_retries: 2,
       max_steps: 5,
-      telemetry: Ai::TelemetrySettings.new
+      telemetry: Ai::TelemetrySettings.new,
+      headers: {}
     )
       options = {
         request_context: request_context,
@@ -39,7 +41,7 @@ module Ai
         telemetry: telemetry
       }
 
-      data = client.generate(agent_name, messages: messages, options: options)
+      data = client.generate(agent_name, messages: messages, options: options, headers: headers)
       TypeCoerce[Ai::GenerateTextResult].new.from(data, raise_coercion_error: false)
     end
 
@@ -51,7 +53,8 @@ module Ai
           request_context: T::Hash[String, T.anything],
           max_retries: Integer,
           max_steps: Integer,
-          telemetry: Ai::TelemetrySettings
+          telemetry: Ai::TelemetrySettings,
+          headers: T::Hash[String, String]
         )
         .returns(GenerateObjectResult[T.type_parameter(:O)])
     end
@@ -61,7 +64,8 @@ module Ai
       request_context: {},
       max_retries: 2,
       max_steps: 5,
-      telemetry: Ai::TelemetrySettings.new
+      telemetry: Ai::TelemetrySettings.new,
+      headers: {}
     )
       schema = Ai::StructToJsonSchema.convert(T.cast(output_class, T.class_of(T::Struct)))
 
@@ -75,7 +79,7 @@ module Ai
         telemetry: telemetry
       }
 
-      data = client.generate(agent_name, messages: messages, options: options)
+      data = client.generate(agent_name, messages: messages, options: options, headers: headers)
 
       object = TypeCoerce[output_class].from(data['object'])
       TypeCoerce[GenerateObjectResult]

@@ -22,6 +22,7 @@ RSpec.describe Ai::Agent do
 
       expect(client).to receive(:generate).with(
         'test',
+        headers: anything,
         messages: anything,
         options: {
           request_context: request_context,
@@ -37,6 +38,7 @@ RSpec.describe Ai::Agent do
     it 'passes custom max_retries and max_steps to client' do
       expect(client).to receive(:generate).with(
         'test',
+        headers: anything,
         messages: anything,
         options: {
           request_context: {
@@ -64,6 +66,7 @@ RSpec.describe Ai::Agent do
 
       expect(client).to receive(:generate).with(
         'test',
+        headers: anything,
         messages: anything,
         options: {
           request_context: {
@@ -80,6 +83,7 @@ RSpec.describe Ai::Agent do
     it 'uses default telemetry settings when none provided' do
       expect(client).to receive(:generate).with(
         'test',
+        headers: anything,
         messages: anything,
         options: {
           request_context: {
@@ -111,6 +115,24 @@ RSpec.describe Ai::Agent do
       expect(result.tool_results).to eq([])
       expect(result.steps).to eq([])
     end
+
+    it 'forwards per-request headers to the client' do
+      agent.generate_text(
+        messages: [Ai.user_message('Hello')],
+        headers: { 'X-Factorial-Actor-Type' => 'Employee', 'X-Factorial-Actor-Id' => '42' }
+      )
+
+      expect(client.last_headers).to eq(
+        'X-Factorial-Actor-Type' => 'Employee',
+        'X-Factorial-Actor-Id' => '42'
+      )
+    end
+
+    it 'sends no per-request headers by default' do
+      agent.generate_text(messages: [Ai.user_message('Hello')])
+
+      expect(client.last_headers).to eq({})
+    end
   end
 
   describe '#generate_object' do
@@ -140,11 +162,22 @@ RSpec.describe Ai::Agent do
       expect(result.usage.cached_input_tokens).to be_nil
     end
 
+    it 'forwards per-request headers to the client' do
+      agent.generate_object(
+        messages: [Ai.user_message('Create person')],
+        output_class: schema,
+        headers: { 'Authorization' => 'Bearer a-service-token' }
+      )
+
+      expect(client.last_headers).to eq('Authorization' => 'Bearer a-service-token')
+    end
+
     it 'passes request_context and options to client' do
       request_context = { 'user_id' => '456', 'context' => 'test' }
 
       expect(client).to receive(:generate).with(
         'test',
+        headers: anything,
         messages: anything,
         options:
           hash_including(
@@ -179,6 +212,7 @@ RSpec.describe Ai::Agent do
 
       expect(client).to receive(:generate).with(
         'test',
+        headers: anything,
         messages: anything,
         options:
           hash_including(
