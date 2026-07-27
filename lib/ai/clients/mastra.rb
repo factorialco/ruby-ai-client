@@ -60,13 +60,14 @@ module Ai
           .params(
             agent_name: String,
             messages: T::Array[Ai::Message],
-            options: T::Hash[Symbol, T.anything]
+            options: T::Hash[Symbol, T.anything],
+            headers: T::Hash[String, String]
           )
           .returns(T::Hash[String, T.anything])
       end
-      def generate(agent_name, messages:, options: {})
+      def generate(agent_name, messages:, options: {}, headers: {})
         url = URI.join(@base_uri, "api/agents/#{agent_name}/generate")
-        generated_response = response(url: url, messages: messages, options: options)
+        generated_response = response(url: url, messages: messages, options: options, headers: headers)
 
         parsed_response =
           JSON.parse(generated_response.body || '').deep_transform_keys(&:underscore)
@@ -301,14 +302,18 @@ module Ai
         params(
           url: URI::Generic,
           messages: T::Array[Ai::Message],
-          options: T::Hash[Symbol, T.anything]
+          options: T::Hash[Symbol, T.anything],
+          headers: T::Hash[String, String]
         ).returns(Net::HTTPResponse)
       end
-      def response(url:, messages:, options:)
+      def response(url:, messages:, options:, headers: {})
         request = Net::HTTP::Post.new(url)
         request['Content-Type'] = 'application/json'
         request['Origin'] = Ai.config.origin
         request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
+        # Per-request headers win over the global configuration (e.g. a
+        # service-to-service Authorization token replacing the shared api_key).
+        headers.each { |name, value| request[name] = value }
 
         # convert to camelCase and unpacking for API compatibility
         camelized_options = deep_camelize_keys(options)

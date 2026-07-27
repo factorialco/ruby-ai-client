@@ -125,6 +125,60 @@ RSpec.describe Ai::Clients::Mastra do
     end
   end
 
+  describe '#generate with per-request headers' do
+    let(:generate_url) { "#{endpoint}/api/agents/marvin/generate" }
+
+    before do
+      Ai.config.api_key = 'global-api-key'
+      stub_request(:post, generate_url).to_return(
+        status: 200,
+        body: { text: 'Test response' }.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      )
+    end
+
+    after { Ai.config.api_key = nil }
+
+    it 'sends the given headers alongside the global ones' do
+      client.generate(
+        'marvin',
+        messages: [Ai.user_message('test')],
+        headers: {
+          'X-Factorial-Actor-Type' => 'Employee',
+          'X-Factorial-Actor-Id' => '42'
+        }
+      )
+
+      expect(WebMock).to have_requested(:post, generate_url).with(
+        headers: {
+          'Authorization' => 'Bearer global-api-key',
+          'X-Factorial-Actor-Type' => 'Employee',
+          'X-Factorial-Actor-Id' => '42'
+        }
+      )
+    end
+
+    it 'lets per-request headers override the global configuration' do
+      client.generate(
+        'marvin',
+        messages: [Ai.user_message('test')],
+        headers: { 'Authorization' => 'Bearer per-request-token' }
+      )
+
+      expect(WebMock).to have_requested(:post, generate_url).with(
+        headers: { 'Authorization' => 'Bearer per-request-token' }
+      )
+    end
+
+    it 'sends only the global headers by default' do
+      client.generate('marvin', messages: [Ai.user_message('test')])
+
+      expect(WebMock).to have_requested(:post, generate_url).with(
+        headers: { 'Authorization' => 'Bearer global-api-key' }
+      )
+    end
+  end
+
   describe '#deep_camelize_keys' do
     # Regression: `deep_camelize_keys` used to camelize property KEYS but leave the
     # string VALUES in JSON-schema `required` arrays snake_case, producing a schema

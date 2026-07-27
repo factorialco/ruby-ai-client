@@ -13,7 +13,12 @@ module Ai
       def initialize(endpoint = Ai.config.endpoint)
         @endpoint = endpoint
         @returned_object = T.let({}, Ai::Client::ApiResponse)
+        @last_headers = T.let({}, T::Hash[String, String])
       end
+
+      # Headers received by the most recent generate call, for test assertions.
+      sig { returns(T::Hash[String, String]) }
+      attr_reader :last_headers
 
       sig { override.returns(T::Array[String]) }
       def agent_names
@@ -30,11 +35,13 @@ module Ai
           .params(
             agent_name: String,
             messages: T::Array[Ai::Message],
-            options: T::Hash[Symbol, T.anything]
+            options: T::Hash[Symbol, T.anything],
+            headers: T::Hash[String, String]
           )
           .returns(T::Hash[String, T.anything])
       end
-      def generate(agent_name, messages:, options: {})
+      def generate(agent_name, messages:, options: {}, headers: {})
+        @last_headers = headers
         output = options[:structured_output]
 
         # Use the first message content for testing purposes
