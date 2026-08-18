@@ -122,8 +122,13 @@ module Ai
         input_schema = workflow.fetch('input_schema')
         output_schema = workflow.fetch('output_schema')
 
-        input_struct = SchemaToStructString.convert(input_schema, class_name: 'Input')
-        output_struct = SchemaToStructString.convert(output_schema, class_name: 'Output')
+        generated_classes = Set.new
+        input_struct = SchemaToStructString.convert(
+          input_schema, class_name: 'Input', generated_classes: generated_classes
+        )
+        output_struct = SchemaToStructString.convert(
+          output_schema, class_name: 'Output', generated_classes: generated_classes
+        )
 
         # to correctly place within module hierarchy
         @input_struct = indent(input_struct, 6)
