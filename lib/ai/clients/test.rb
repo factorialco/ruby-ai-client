@@ -14,11 +14,16 @@ module Ai
         @endpoint = endpoint
         @returned_object = T.let({}, Ai::Client::ApiResponse)
         @last_headers = T.let({}, T::Hash[String, String])
+        @last_read_timeout = T.let(nil, T.nilable(Integer))
       end
 
       # Headers received by the most recent generate call, for test assertions.
       sig { returns(T::Hash[String, String]) }
       attr_reader :last_headers
+
+      # Read timeout received by the most recent generate call, for test assertions.
+      sig { returns(T.nilable(Integer)) }
+      attr_reader :last_read_timeout
 
       sig { override.returns(T::Array[String]) }
       def agent_names
@@ -36,12 +41,14 @@ module Ai
             agent_name: String,
             messages: T::Array[Ai::Message],
             options: T::Hash[Symbol, T.anything],
-            headers: T::Hash[String, String]
+            headers: T::Hash[String, String],
+            read_timeout: T.nilable(Integer)
           )
           .returns(T::Hash[String, T.anything])
       end
-      def generate(agent_name, messages:, options: {}, headers: {})
+      def generate(agent_name, messages:, options: {}, headers: {}, read_timeout: nil)
         @last_headers = headers
+        @last_read_timeout = read_timeout
         output = options[:structured_output]
 
         # Use the first message content for testing purposes

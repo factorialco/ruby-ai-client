@@ -33,11 +33,12 @@ module Ai
           agent_name: String,
           messages: T::Array[Ai::Message],
           options: T::Hash[Symbol, T.anything],
-          headers: T::Hash[String, String]
+          headers: T::Hash[String, String],
+          read_timeout: T.nilable(Integer)
         )
         .returns(T::Hash[String, T.anything])
     end
-    def generate(agent_name, messages:, options: {}, headers: {})
+    def generate(agent_name, messages:, options: {}, headers: {}, read_timeout: nil)
     end
 
     sig { abstract.params(workflow_name: String, input: T::Struct).returns(ApiResponse) }

@@ -61,13 +61,21 @@ module Ai
             agent_name: String,
             messages: T::Array[Ai::Message],
             options: T::Hash[Symbol, T.anything],
-            headers: T::Hash[String, String]
+            headers: T::Hash[String, String],
+            read_timeout: T.nilable(Integer)
           )
           .returns(T::Hash[String, T.anything])
       end
-      def generate(agent_name, messages:, options: {}, headers: {})
+      def generate(agent_name, messages:, options: {}, headers: {}, read_timeout: nil)
         url = URI.join(@base_uri, "api/agents/#{agent_name}/generate")
-        generated_response = response(url: url, messages: messages, options: options, headers: headers)
+        generated_response =
+          response(
+            url: url,
+            messages: messages,
+            options: options,
+            headers: headers,
+            read_timeout: read_timeout
+          )
 
         parsed_response =
           JSON.parse(generated_response.body || '').deep_transform_keys(&:underscore)
@@ -225,12 +233,16 @@ module Ai
 
       private
 
-      sig { returns(Net::HTTP) }
-      def build_http
+      sig { params(read_timeout: T.nilable(Integer)).returns(Net::HTTP) }
+      def build_http(read_timeout: nil)
         # Create a new connection for each request - thread-safe
         # This ensures each thread/request gets its own HTTP connection with its own SSL context
         http_instance = Net::HTTP.new(@base_uri.host, @base_uri.port)
         http_instance.use_ssl = (@base_uri.scheme == 'https')
+        # Net::HTTP times reads per socket read (not wall clock), so for a
+        # single-body generate response this is effectively time-to-response.
+        # nil keeps Net::HTTP's 60s default.
+        http_instance.read_timeout = read_timeout unless read_timeout.nil?
         http_instance
       end
 
@@ -303,10 +315,11 @@ module Ai
           url: URI::Generic,
           messages: T::Array[Ai::Message],
           options: T::Hash[Symbol, T.anything],
-          headers: T::Hash[String, String]
+          headers: T::Hash[String, String],
+          read_timeout: T.nilable(Integer)
         ).returns(Net::HTTPResponse)
       end
-      def response(url:, messages:, options:, headers: {})
+      def response(url:, messages:, options:, headers: {}, read_timeout: nil)
         request = Net::HTTP::Post.new(url)
         request['Content-Type'] = 'application/json'
         request['Origin'] = Ai.config.origin
@@ -320,7 +333,7 @@ module Ai
         serialized_messages = messages.map(&:as_json)
         request.body = { messages: serialized_messages, **camelized_options }.to_json
 
-        http = build_http
+        http = build_http(read_timeout: read_timeout)
         response = http.request(request)
 
         unless response.is_a?(Net::HTTPSuccess)
