@@ -29,6 +29,26 @@ RSpec.describe Ai::Message do
       expect(message.content.length).to eq(2)
     end
 
+    it 'serializes multipart content with a file part correctly' do
+      text_part = Ai::TextPart.new(text: 'Analyze this document')
+      file_part =
+        Ai::FilePart.new(
+          file_data: 'pdf bytes',
+          media_type: 'application/pdf',
+          filename: 'invoice.pdf'
+        )
+      message = Ai::Message.new(role: Ai::MessageRole::User, content: [text_part, file_part])
+
+      json = message.as_json
+
+      expect(json[:content].length).to eq(2)
+      expect(json[:content][0][:type]).to eq('text')
+      expect(json[:content][1][:type]).to eq('file')
+      expect(json[:content][1][:data]).to start_with('data:application/pdf;base64,')
+      expect(json[:content][1][:mediaType]).to eq('application/pdf')
+      expect(json[:content][1][:filename]).to eq('invoice.pdf')
+    end
+
     it 'serializes multipart content correctly' do
       text_part = Ai::TextPart.new(text: 'Describe this image')
       image_data = 'test image data'

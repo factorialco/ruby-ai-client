@@ -71,6 +71,25 @@ RSpec.describe Ai do
     end
   end
 
+  describe '.user_message_with_file' do
+    it 'creates a user message with text and file parts' do
+      message = Ai.user_message_with_file('Analyze this document', 'binary pdf data', 'application/pdf')
+
+      expect(message).to be_a(Ai::Message)
+      expect(message.role).to eq(Ai::MessageRole::User)
+      expect(message.content.length).to eq(2)
+      expect(message.content.first).to be_a(Ai::TextPart)
+      expect(message.content.last).to be_a(Ai::FilePart)
+    end
+
+    it 'passes the filename through to the file part' do
+      message =
+        Ai.user_message_with_file('Analyze', 'data', 'application/pdf', filename: 'invoice.pdf')
+
+      expect(T.cast(message.content.last, Ai::FilePart).filename).to eq('invoice.pdf')
+    end
+  end
+
   describe '.user_message_with_image' do
     it 'creates a user message with text and image parts' do
       text = 'What is in this image?'

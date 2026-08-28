@@ -1,7 +1,8 @@
 # typed: strict
 
 module Ai
-  MessageContent = T.type_alias { T.any(String, T::Array[T.any(Ai::TextPart, Ai::ImagePart)]) }
+  MessageContent =
+    T.type_alias { T.any(String, T::Array[T.any(Ai::TextPart, Ai::ImagePart, Ai::FilePart)]) }
 
   class Message < T::Struct
     extend T::Sig
@@ -22,7 +23,7 @@ module Ai
         if content.is_a?(String)
           content
         else
-          T.cast(content, T::Array[T.any(Ai::TextPart, Ai::ImagePart)]).map(&:as_json)
+          T.cast(content, T::Array[T.any(Ai::TextPart, Ai::ImagePart, Ai::FilePart)]).map(&:as_json)
         end
 
       { role: role.serialize, content: serialized_content }

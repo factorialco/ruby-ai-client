@@ -123,6 +123,38 @@ message = Ai::Message.new(
 )
 ```
 
+**Sending documents (e.g. PDFs):**
+
+Providers that support file inputs can read documents directly — for PDFs the model
+sees both the embedded text layer and the rendered pages:
+
+```ruby
+pdf_data = File.binread('path/to/invoice.pdf')
+
+message = Ai.user_message_with_file(
+  "Extract the invoice fields from this document",
+  pdf_data,
+  "application/pdf",
+  filename: "invoice.pdf"
+)
+
+messages = [message]
+```
+
+For custom combinations, `Ai::FilePart` composes with the other parts the same way
+`Ai::ImagePart` does:
+
+```ruby
+message = Ai::Message.new(
+  role: Ai::MessageRole::User,
+  content: [
+    Ai::TextPart.new(text: "Compare these documents:"),
+    Ai::FilePart.new(file_data: pdf1, media_type: "application/pdf", filename: "a.pdf"),
+    Ai::FilePart.new(file_data: pdf2, media_type: "application/pdf", filename: "b.pdf")
+  ]
+)
+```
+
 **Using Image URLs:**
 
 Instead of sending image data, you can send a URL for the agent to fetch the image:
