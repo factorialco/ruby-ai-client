@@ -19,6 +19,7 @@ module Ai
   autoload :Client, 'ai/client'
   autoload :Clients, 'ai/clients'
   autoload :StructToJsonSchema, 'ai/struct_to_json_schema'
+  autoload :Workflow, 'ai/workflow'
   autoload :GenerateObjectResult, 'ai/types/generate_object_result'
   autoload :GenerateTextResult, 'ai/types/generate_text_result'
   autoload :GeneratedFile, 'ai/types/generated_file'
