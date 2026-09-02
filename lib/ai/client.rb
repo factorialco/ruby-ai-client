@@ -40,8 +40,12 @@ module Ai
     def generate(agent_name, messages:, options: {}, headers: {})
     end
 
-    sig { abstract.params(workflow_name: String, input: T::Struct).returns(ApiResponse) }
-    def run_workflow(workflow_name, input:)
+    sig do
+      abstract
+        .params(workflow_name: String, input: T::Struct, headers: T::Hash[String, String])
+        .returns(ApiResponse)
+    end
+    def run_workflow(workflow_name, input:, headers: {})
     end
 
     sig { abstract.params(workflow_name: String).returns(SchemaHash) }
