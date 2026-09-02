@@ -20,7 +20,7 @@ module Ai
 
 <%= @output_struct %>
 
-      sig { params(input: Input, headers: T::Hash[String, String]).returns(Output) }
+      sig { override.params(input: Input, headers: T::Hash[String, String]).returns(Output) }
       def self.call(input, headers: {})
         response = Ai.client.run_workflow('<%= @workflow_name %>', input:, headers:)
         TypeCoerce[Output].from(response)

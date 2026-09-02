@@ -49,18 +49,18 @@ module Ai
         validate_endpoint!
 
         say 'Fetching workflows from Mastra...', :green
-        workflow_names = workflow_names
-        if workflow_names.empty?
+        names = workflow_names
+        if names.empty?
           say 'No workflows found. Exiting.', :yellow
           return
         end
 
-        say "Found #{workflow_names.length} workflows: #{workflow_names.join(', ')}", :blue
+        say "Found #{names.length} workflows: #{names.join(', ')}", :blue
         generated_count = 0
         skipped_count = 0
         errors = []
 
-        workflow_names.each do |workflow_name|
+        names.each do |workflow_name|
           say "Generating workflow: #{workflow_name}"
           create_workflow_file(workflow_name)
           generated_count += 1
