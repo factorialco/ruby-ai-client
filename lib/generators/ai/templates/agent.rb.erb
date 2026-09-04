@@ -12,7 +12,7 @@
 
 module Ai
   module Agents
-    class <%= @agent_name.classify %> < Ai::Agent
+    class <%= @agent_name.underscore.camelize %> < Ai::Agent
       extend T::Sig
 
       sig { returns(T.attached_class) }

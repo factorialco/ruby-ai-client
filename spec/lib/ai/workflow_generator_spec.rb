@@ -15,14 +15,10 @@ RSpec.describe Ai::Generators::WorkflowGenerator do
   # workflow. Stub the endpoint, not the generator, so the real method runs.
   describe '--all' do
     context 'when Mastra reports no workflows' do
-      before do
-        stub_request(:get, "#{endpoint}/api/workflows").to_return(status: 200, body: '{}')
-      end
+      before { stub_request(:get, "#{endpoint}/api/workflows").to_return(status: 200, body: '{}') }
 
       it 'reports none found instead of raising on nil' do
-        expect { generator.send(:generate_all_workflows) }.to output(
-          /No workflows found/
-        ).to_stdout
+        expect { generator.send(:generate_all_workflows) }.to output(/No workflows found/).to_stdout
       end
     end
 
@@ -37,6 +33,35 @@ RSpec.describe Ai::Generators::WorkflowGenerator do
       it 'reads the names off the response' do
         expect(generator.send(:workflow_names)).to eq(%w[alpha beta])
       end
+    end
+  end
+
+  # Regression: the template built the class name with `classify`, which
+  # singularizes because it is meant for table names. A workflow whose name ends
+  # in a plural got a class nobody could resolve.
+  describe 'the generated class name' do
+    subject(:single) { described_class.new([], { endpoint: endpoint }) }
+
+    let(:workflow_name) { 'talentRecruitmentAtsCandidateSummaries' }
+    let(:schema) { { type: 'object', properties: { id: { type: 'integer' } } } }
+
+    before do
+      stub_request(:get, "#{endpoint}/api/workflows/#{workflow_name}").to_return(
+        status: 200,
+        body: { input_schema: schema.to_json, output_schema: schema.to_json }.to_json
+      )
+    end
+
+    it 'keeps a plural workflow name plural' do
+      rendered = single.send(:render_workflow_template, workflow_name)
+
+      expect(rendered).to include('class TalentRecruitmentAtsCandidateSummaries')
+    end
+
+    it 'names the class after the file the generator writes' do
+      rendered = single.send(:render_workflow_template, workflow_name)
+
+      expect(rendered).to include("class #{workflow_name.underscore.camelize}")
     end
   end
 
