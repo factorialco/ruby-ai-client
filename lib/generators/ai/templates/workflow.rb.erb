@@ -12,7 +12,7 @@
 
 module Ai
   module Workflows
-    class <%= @workflow_name.classify %>
+    class <%= @workflow_name.underscore.camelize %>
       extend T::Sig
       include Ai::Workflow
 
