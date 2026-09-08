@@ -23,6 +23,7 @@ RSpec.describe Ai::Agent do
       expect(client).to receive(:generate).with(
         'test',
         headers: anything,
+        read_timeout: anything,
         messages: anything,
         options: {
           request_context: request_context,
@@ -39,6 +40,7 @@ RSpec.describe Ai::Agent do
       expect(client).to receive(:generate).with(
         'test',
         headers: anything,
+        read_timeout: anything,
         messages: anything,
         options: {
           request_context: {
@@ -67,6 +69,7 @@ RSpec.describe Ai::Agent do
       expect(client).to receive(:generate).with(
         'test',
         headers: anything,
+        read_timeout: anything,
         messages: anything,
         options: {
           request_context: {
@@ -84,6 +87,7 @@ RSpec.describe Ai::Agent do
       expect(client).to receive(:generate).with(
         'test',
         headers: anything,
+        read_timeout: anything,
         messages: anything,
         options: {
           request_context: {
@@ -133,6 +137,12 @@ RSpec.describe Ai::Agent do
 
       expect(client.last_headers).to eq({})
     end
+
+    it 'forwards the read timeout to the client' do
+      agent.generate_text(messages: [Ai.user_message('Hello')], read_timeout: 120)
+
+      expect(client.last_read_timeout).to eq(120)
+    end
   end
 
   describe '#generate_object' do
@@ -172,12 +182,23 @@ RSpec.describe Ai::Agent do
       expect(client.last_headers).to eq('Authorization' => 'Bearer a-service-token')
     end
 
+    it 'forwards the read timeout to the client' do
+      agent.generate_object(
+        messages: [Ai.user_message('Create person')],
+        output_class: schema,
+        read_timeout: 120
+      )
+
+      expect(client.last_read_timeout).to eq(120)
+    end
+
     it 'passes request_context and options to client' do
       request_context = { 'user_id' => '456', 'context' => 'test' }
 
       expect(client).to receive(:generate).with(
         'test',
         headers: anything,
+        read_timeout: anything,
         messages: anything,
         options:
           hash_including(
@@ -213,6 +234,7 @@ RSpec.describe Ai::Agent do
       expect(client).to receive(:generate).with(
         'test',
         headers: anything,
+        read_timeout: anything,
         messages: anything,
         options:
           hash_including(

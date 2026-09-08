@@ -23,7 +23,8 @@ module Ai
         max_retries: Integer,
         max_steps: Integer,
         telemetry: Ai::TelemetrySettings,
-        headers: T::Hash[String, String]
+        headers: T::Hash[String, String],
+        read_timeout: T.nilable(Integer)
       ).returns(Ai::GenerateTextResult)
     end
     def generate_text(
@@ -32,7 +33,8 @@ module Ai
       max_retries: 2,
       max_steps: 5,
       telemetry: Ai::TelemetrySettings.new,
-      headers: {}
+      headers: {},
+      read_timeout: nil
     )
       options = {
         request_context: request_context,
@@ -41,7 +43,14 @@ module Ai
         telemetry: telemetry
       }
 
-      data = client.generate(agent_name, messages: messages, options: options, headers: headers)
+      data =
+        client.generate(
+          agent_name,
+          messages: messages,
+          options: options,
+          headers: headers,
+          read_timeout: read_timeout
+        )
       TypeCoerce[Ai::GenerateTextResult].new.from(data, raise_coercion_error: false)
     end
 
@@ -54,7 +63,8 @@ module Ai
           max_retries: Integer,
           max_steps: Integer,
           telemetry: Ai::TelemetrySettings,
-          headers: T::Hash[String, String]
+          headers: T::Hash[String, String],
+          read_timeout: T.nilable(Integer)
         )
         .returns(GenerateObjectResult[T.type_parameter(:O)])
     end
@@ -65,7 +75,8 @@ module Ai
       max_retries: 2,
       max_steps: 5,
       telemetry: Ai::TelemetrySettings.new,
-      headers: {}
+      headers: {},
+      read_timeout: nil
     )
       schema = Ai::StructToJsonSchema.convert(T.cast(output_class, T.class_of(T::Struct)))
 
@@ -79,7 +90,14 @@ module Ai
         telemetry: telemetry
       }
 
-      data = client.generate(agent_name, messages: messages, options: options, headers: headers)
+      data =
+        client.generate(
+          agent_name,
+          messages: messages,
+          options: options,
+          headers: headers,
+          read_timeout: read_timeout
+        )
 
       object = TypeCoerce[output_class].from(data['object'])
       TypeCoerce[GenerateObjectResult]

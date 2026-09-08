@@ -125,6 +125,34 @@ RSpec.describe Ai::Clients::Mastra do
     end
   end
 
+  describe '#generate with a per-request read timeout' do
+    let(:generate_url) { "#{endpoint}/api/agents/marvin/generate" }
+    let(:built_instances) { [] }
+
+    before do
+      stub_request(:post, generate_url).to_return(
+        status: 200,
+        body: { text: 'Test response' }.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      )
+      allow(Net::HTTP).to receive(:new).and_wrap_original do |original, *args|
+        original.call(*args).tap { |http| built_instances << http }
+      end
+    end
+
+    it 'applies the given timeout to the connection' do
+      client.generate('marvin', messages: [Ai.user_message('test')], read_timeout: 120)
+
+      expect(built_instances.last.read_timeout).to eq(120)
+    end
+
+    it "keeps Net::HTTP's default when not given" do
+      client.generate('marvin', messages: [Ai.user_message('test')])
+
+      expect(built_instances.last.read_timeout).to eq(60)
+    end
+  end
+
   describe '#generate with per-request headers' do
     let(:generate_url) { "#{endpoint}/api/agents/marvin/generate" }
 
