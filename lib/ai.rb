@@ -19,6 +19,7 @@ module Ai
   autoload :Client, 'ai/client'
   autoload :Clients, 'ai/clients'
   autoload :StructToJsonSchema, 'ai/struct_to_json_schema'
+  autoload :Workflow, 'ai/workflow'
   autoload :GenerateObjectResult, 'ai/types/generate_object_result'
   autoload :GenerateTextResult, 'ai/types/generate_text_result'
   autoload :GeneratedFile, 'ai/types/generated_file'
@@ -29,6 +30,7 @@ module Ai
   autoload :Message, 'ai/types/message'
   autoload :TextPart, 'ai/types/text_part'
   autoload :ImagePart, 'ai/types/image_part'
+  autoload :FilePart, 'ai/types/file_part'
   autoload :ReasoningDetail, 'ai/types/reasoning_detail'
   autoload :ResponseMessage, 'ai/types/response_message'
   autoload :ResponseMetadata, 'ai/types/response_metadata'
@@ -64,6 +66,24 @@ module Ai
     Ai::Message.new(
       role: Ai::MessageRole::User,
       content: [Ai::TextPart.new(text: text), Ai::ImagePart.new(image_data: image_data, media_type: media_type)]
+    )
+  end
+
+  sig do
+    params(
+      text: String,
+      file_data: String,
+      media_type: String,
+      filename: T.nilable(String)
+    ).returns(Ai::Message)
+  end
+  def self.user_message_with_file(text, file_data, media_type, filename: nil)
+    Ai::Message.new(
+      role: Ai::MessageRole::User,
+      content: [
+        Ai::TextPart.new(text: text),
+        Ai::FilePart.new(file_data: file_data, media_type: media_type, filename: filename)
+      ]
     )
   end
 

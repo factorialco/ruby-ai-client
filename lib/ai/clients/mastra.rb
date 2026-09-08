@@ -92,15 +92,17 @@ module Ai
       end
 
       sig do
-        override.params(workflow_name: String, input: T::Struct).returns(Ai::Client::ApiResponse)
+        override
+          .params(workflow_name: String, input: T::Struct, headers: T::Hash[String, String])
+          .returns(Ai::Client::ApiResponse)
       end
-      def run_workflow(workflow_name, input:)
+      def run_workflow(workflow_name, input:, headers: {})
         run_id = SecureRandom.uuid
 
         # Step 1: Create a new run for the workflow
         create_url =
           URI.join(@base_uri, "api/workflows/#{workflow_name}/create-run?runId=#{run_id}")
-        create_response = http_post(create_url, body: '{}')
+        create_response = http_post(create_url, body: '{}', headers: headers)
 
         unless create_response.is_a?(Net::HTTPSuccess)
           raise Ai::Error, "Mastra error – could not create workflow run: #{create_response.body}"
@@ -113,7 +115,7 @@ module Ai
         stream_error_body = T.let(nil, T.nilable(String))
         stream_body_chunks = T.let([], T::Array[String])
         stream_response =
-          http_post(stream_url, body: stream_request_body, stream: true) do |response|
+          http_post(stream_url, body: stream_request_body, stream: true, headers: headers) do |response|
             if response.is_a?(Net::HTTPSuccess)
               response.read_body do |chunk|
                 # Capture the stream body to check for workflow failures
@@ -153,6 +155,7 @@ module Ai
             .config
             .api_key
             .present?
+          headers.each { |name, value| result_request[name] = value }
           http = build_http
           result_response = http.request(result_request)
 
@@ -276,13 +279,17 @@ module Ai
           url: URI::Generic,
           body: T.nilable(String),
           stream: T::Boolean,
+          headers: T::Hash[String, String],
           blk: T.nilable(T.proc.params(response: Net::HTTPResponse).void)
         ).returns(Net::HTTPResponse)
       end
-      def http_post(url, body: nil, stream: false, &blk)
+      def http_post(url, body: nil, stream: false, headers: {}, &blk)
         request = Net::HTTP::Post.new(url)
         request['Origin'] = Ai.config.origin
         request['Authorization'] = "Bearer #{Ai.config.api_key}" if Ai.config.api_key.present?
+        # Per-request headers win over the global configuration (e.g. a
+        # service-to-service Authorization token replacing the shared api_key).
+        headers.each { |name, value| request[name] = value }
         if body
           request['Content-Type'] = 'application/json'
           request.body = body

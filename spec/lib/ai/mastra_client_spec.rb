@@ -207,6 +207,75 @@ RSpec.describe Ai::Clients::Mastra do
     end
   end
 
+  describe '#run_workflow with per-request headers' do
+    let(:workflow_name) { 'testWorkflow' }
+    let(:run_id_pattern) { %r{#{Regexp.escape(endpoint)}/api/workflows/testWorkflow/} }
+    let(:input) do
+      unnamed_struct = Class.new(T::Struct) { const :first_number, Integer }
+      unnamed_struct.new(first_number: 3)
+    end
+
+    before do
+      Ai.config.api_key = 'global-api-key'
+      stub_request(:post, run_id_pattern).to_return(
+        status: 200,
+        body: '{}',
+        headers: { 'Content-Type' => 'application/json' }
+      )
+      stub_request(:get, run_id_pattern).to_return(
+        status: 200,
+        body: { status: 'success', result: { 'ok' => true } }.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      )
+    end
+
+    after { Ai.config.api_key = nil }
+
+    # A workflow run is three requests (create-run, stream, fetch result); the actor
+    # must travel on all of them, not just the first.
+    it 'sends the given headers on every request of the run' do
+      client.run_workflow(
+        workflow_name,
+        input: input,
+        headers: {
+          'X-Factorial-Actor-Type' => 'Employee',
+          'X-Factorial-Actor-Id' => '42'
+        }
+      )
+
+      actor_headers = {
+        'X-Factorial-Actor-Type' => 'Employee',
+        'X-Factorial-Actor-Id' => '42'
+      }
+      expect(WebMock).to have_requested(:post, %r{/create-run}).with(headers: actor_headers)
+      expect(WebMock).to have_requested(:post, %r{/stream}).with(headers: actor_headers)
+      expect(WebMock).to have_requested(:get, %r{/runs/}).with(headers: actor_headers)
+    end
+
+    it 'lets per-request headers override the global configuration' do
+      client.run_workflow(
+        workflow_name,
+        input: input,
+        headers: { 'Authorization' => 'Bearer per-request-token' }
+      )
+
+      expect(WebMock).to have_requested(:post, %r{/create-run}).with(
+        headers: { 'Authorization' => 'Bearer per-request-token' }
+      )
+      expect(WebMock).to have_requested(:get, %r{/runs/}).with(
+        headers: { 'Authorization' => 'Bearer per-request-token' }
+      )
+    end
+
+    it 'sends only the global headers by default' do
+      client.run_workflow(workflow_name, input: input)
+
+      expect(WebMock).to have_requested(:post, %r{/create-run}).with(
+        headers: { 'Authorization' => 'Bearer global-api-key' }
+      )
+    end
+  end
+
   describe '#deep_camelize_keys' do
     # Regression: `deep_camelize_keys` used to camelize property KEYS but leave the
     # string VALUES in JSON-schema `required` arrays snake_case, producing a schema

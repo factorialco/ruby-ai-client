@@ -115,9 +115,11 @@ module Ai
       end
 
       sig do
-        override.params(workflow_name: String, input: T::Struct).returns(Ai::Client::ApiResponse)
+        override
+          .params(workflow_name: String, input: T::Struct, headers: T::Hash[String, String])
+          .returns(Ai::Client::ApiResponse)
       end
-      def run_workflow(workflow_name, input:)
+      def run_workflow(workflow_name, input:, headers: {})
         @returned_object
       end
 
