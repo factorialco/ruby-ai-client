@@ -556,5 +556,83 @@ RSpec.describe Ai::SchemaToStructString do
         expect(meeting_pos).to be < direct_report_pos
       end
     end
+
+    describe 'shared generated_classes' do
+      # A workflow that re-evaluates its own previous output takes that output back as input, so
+      # the same sub-schema occurs in both schemas under the same property name.
+      let(:result_properties) do
+        {
+          'check_id' => { 'type' => 'integer' },
+          'evidence' => {
+            'type' => 'array',
+            'items' => {
+              'type' => 'object',
+              'properties' => {
+                'source_id' => { 'type' => 'integer' },
+                'quote' => { 'type' => 'string' }
+              },
+              'required' => %w[source_id quote]
+            }
+          }
+        }
+      end
+
+      let(:input_schema) do
+        {
+          'type' => 'object',
+          'properties' => {
+            'previous_results' => {
+              'type' => 'array',
+              'items' => {
+                'type' => 'object',
+                'properties' => result_properties,
+                'required' => %w[check_id evidence]
+              }
+            }
+          },
+          'required' => ['previous_results']
+        }.to_json
+      end
+
+      let(:output_schema) do
+        {
+          'type' => 'object',
+          'properties' => {
+            'results' => {
+              'type' => 'array',
+              'items' => {
+                'type' => 'object',
+                'properties' => result_properties,
+                'required' => %w[check_id evidence]
+              }
+            }
+          },
+          'required' => ['results']
+        }.to_json
+      end
+
+      it 'writes a sub-struct shared by two schemas only once' do
+        generated_classes = Set.new
+
+        input = converter.convert(
+          input_schema, class_name: 'Input', generated_classes: generated_classes
+        )
+        output = converter.convert(
+          output_schema, class_name: 'Output', generated_classes: generated_classes
+        )
+
+        expect(input.scan('class Evidence < T::Struct').size).to eq(1)
+        expect(output.scan('class Evidence < T::Struct').size).to eq(0)
+        expect(output).to include('const :evidence, T::Array[Evidence]')
+      end
+
+      it 'writes the sub-struct in each schema when no set is shared' do
+        input = converter.convert(input_schema, class_name: 'Input')
+        output = converter.convert(output_schema, class_name: 'Output')
+
+        expect(input.scan('class Evidence < T::Struct').size).to eq(1)
+        expect(output.scan('class Evidence < T::Struct').size).to eq(1)
+      end
+    end
   end
 end

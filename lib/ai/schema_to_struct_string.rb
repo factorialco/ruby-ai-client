@@ -17,16 +17,23 @@ module Ai
   class SchemaToStructString
     extend T::Sig
 
-    sig { params(schema: String, class_name: String).returns(String) }
-    def self.convert(schema, class_name: 'Input')
-      new(schema, class_name: class_name).convert
+    sig do
+      params(schema: String, class_name: String, generated_classes: T.nilable(T::Set[String]))
+        .returns(String)
+    end
+    def self.convert(schema, class_name: 'Input', generated_classes: nil)
+      new(schema, class_name: class_name, generated_classes: generated_classes).convert
     end
 
-    sig { params(schema: String, class_name: String).void }
-    def initialize(schema, class_name: 'Input')
+    sig do
+      params(schema: String, class_name: String, generated_classes: T.nilable(T::Set[String])).void
+    end
+    def initialize(schema, class_name: 'Input', generated_classes: nil)
       @schema = schema
       @root_class_name = class_name
-      @generated_classes = T.let(Set.new, T::Set[String])
+      # A caller that converts more than one schema into the same file gives the same set to each
+      # conversion. A sub-schema that occurs in two of them is then written once, not twice.
+      @generated_classes = T.let(generated_classes || Set.new, T::Set[String])
       @nested_definitions = T.let([], T::Array[String])
       @schema_definitions = T.let({}, T::Hash[String, T::Hash[String, T.untyped]])
       @resolved_refs = T.let({}, T::Hash[String, T::Hash[String, T.untyped]])
